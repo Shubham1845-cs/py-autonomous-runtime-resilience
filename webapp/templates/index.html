@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}AutoHeal-Py | Autonomous Runtime Resilience{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">
+            <span class="gradient-text">AutoHeal-Py</span>
+        </h1>
+        <p class="hero-subtitle">Autonomous Runtime Resilience Framework for Microservices</p>
+        <p class="hero-description">
+            Zero-touch monitoring and self-healing for Python applications.
+            Detects failures in real-time and dynamically injects resilience patterns without code changes.
+        </p>
+        <div class="hero-buttons">
+            <a href="/dashboard" class="btn btn-primary">View Dashboard</a>
+            <a href="/docs" class="btn btn-secondary">Documentation</a>
+        </div>
+    </div>
+</div>
+
+<div class="features-section">
+    <div class="container">
+        <h2 class="section-title">Key Features</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h3>Real-Time Monitoring</h3>
+                <p>Passive observation of all HTTP calls with sliding window metrics and health analysis</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3>Autonomous Detection</h3>
+                <p>Intelligent pattern recommendation based on failure signatures and error analysis</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Zero-Touch Operation</h3>
+                <p>No code changes required. Monkey patching enables runtime instrumentation</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Circuit Breaker</h3>
+                <p>Prevents cascading failures with automatic state transitions (CLOSED → OPEN → HALF_OPEN)</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>Smart Retry</h3>
+                <p>Exponential backoff with jitter for transient failures and service overload</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⏱️</div>
+                <h3>Timeout Guard</h3>
+                <p>Thread-based timeout enforcement to prevent hanging on slow services</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="stats-preview">
+    <div class="container">
+        <h2 class="section-title">Live System Status</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🌐</div>
+                <div class="stat-value" id="home-services">0</div>
+                <div class="stat-label">Services Monitored</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="home-calls">0</div>
+                <div class="stat-label">Total API Calls</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🛡️</div>
+                <div class="stat-value" id="home-patterns">0</div>
+                <div class="stat-label">Active Patterns</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-value" id="home-status">Operational</div>
+                <div class="stat-label">System Status</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function updateHomeStats() {
+        try {
+            const res = await fetch('/api/stats');
+            const stats = await res.json();
+            document.getElementById('home-services').textContent = stats.total_services;
+            document.getElementById('home-calls').textContent = stats.total_calls;
+            document.getElementById('home-patterns').textContent = stats.active_patterns;
+            document.getElementById('home-status').textContent = stats.system_status;
+        } catch (e) {
+            console.error('Failed to fetch stats:', e);
+        }
+    }
+    setInterval(updateHomeStats, 3000);
+    updateHomeStats();
+</script>
+{% endblock %}

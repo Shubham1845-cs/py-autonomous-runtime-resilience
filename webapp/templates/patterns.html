@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Resilience Patterns | AutoHeal-Py{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Resilience Patterns</h1>
+    <p>Explore the three core patterns that protect your microservices</p>
+</div>
+
+<div class="container">
+    <div class="patterns-showcase">
+        <!-- Circuit Breaker -->
+        <div class="pattern-card">
+            <div class="pattern-header">
+                <div class="pattern-icon">🔌</div>
+                <h2>Circuit Breaker</h2>
+            </div>
+            <p class="pattern-description">
+                Prevents cascading failures by failing fast when a service is unhealthy.
+                Implements a state machine with automatic transitions.
+            </p>
+            <div class="pattern-details">
+                <h3>States</h3>
+                <div class="states-flow">
+                    <div class="state-box state-closed">CLOSED</div>
+                    <span class="arrow">→</span>
+                    <div class="state-box state-open">OPEN</div>
+                    <span class="arrow">→</span>
+                    <div class="state-box state-half-open">HALF_OPEN</div>
+                </div>
+                <h3>When to Use</h3>
+                <ul class="pattern-list">
+                    <li>Failure rate ≥ 50%</li>
+                    <li>Connection failures > 30%</li>
+                    <li>Prevent cascading failures</li>
+                </ul>
+                <h3>Configuration</h3>
+                <div class="code-block">
+                    <code>failure_threshold: 5<br>timeout_seconds: 30<br>half_open_max_calls: 1</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Retry Pattern -->
+        <div class="pattern-card">
+            <div class="pattern-header">
+                <div class="pattern-icon">🔄</div>
+                <h2>Retry with Exponential Backoff</h2>
+            </div>
+            <p class="pattern-description">
+                Automatically retries failed requests with increasing delays between attempts.
+                Includes jitter to prevent thundering herd.
+            </p>
+            <div class="pattern-details">
+                <h3>Backoff Algorithm</h3>
+                <div class="algorithm-visual">
+                    <div class="attempt">Attempt 1: 1s</div>
+                    <div class="attempt">Attempt 2: 2s</div>
+                    <div class="attempt">Attempt 3: 4s</div>
+                    <div class="attempt">Attempt 4: 8s</div>
+                </div>
+                <h3>When to Use</h3>
+                <ul class="pattern-list">
+                    <li>503 Service Unavailable errors > 30%</li>
+                    <li>Timeout errors > 20%</li>
+                    <li>Transient network failures</li>
+                </ul>
+                <h3>Configuration</h3>
+                <div class="code-block">
+                    <code>max_attempts: 3<br>backoff_base: 2<br>max_delay: 10s<br>jitter: true</code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeout Pattern -->
+        <div class="pattern-card">
+            <div class="pattern-header">
+                <div class="pattern-icon">⏱️</div>
+                <h2>Timeout Guard</h2>
+            </div>
+            <p class="pattern-description">
+                Enforces a maximum waiting time for service calls using thread-based timeout enforcement.
+            </p>
+            <div class="pattern-details">
+                <h3>Mechanism</h3>
+                <div class="mechanism-visual">
+                    <div class="timeline">
+                        <div class="timeline-item">Start Call</div>
+                        <div class="timeline-arrow">→</div>
+                        <div class="timeline-item">Monitor (Thread)</div>
+                        <div class="timeline-arrow">→</div>
+                        <div class="timeline-item">Timeout or Complete</div>
+                    </div>
+                </div>
+                <h3>When to Use</h3>
+                <ul class="pattern-list">
+                    <li>Average latency > 3 seconds</li>
+                    <li>Slow database queries</li>
+                    <li>Prevent hanging requests</li>
+                </ul>
+                <h3>Configuration</h3>
+                <div class="code-block">
+                    <code>max_seconds: 5.0<br>enforcement: thread-based</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

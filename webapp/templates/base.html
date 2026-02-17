@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AutoHeal-Py{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">🛡️</span>
+                <span class="brand-text">AutoHeal-Py</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Home</a></li>
+                <li><a href="/dashboard"
+                        class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">Dashboard</a></li>
+                <li><a href="/monitor" class="nav-link {% if request.path == '/monitor' %}active{% endif %}">Monitor</a>
+                </li>
+                <li><a href="/patterns"
+                        class="nav-link {% if request.path == '/patterns' %}active{% endif %}">Patterns</a></li>
+                <li><a href="/docs" class="nav-link {% if request.path == '/docs' %}active{% endif %}">Docs</a></li>
+                <li><a href="/settings"
+                        class="nav-link {% if request.path == '/settings' %}active{% endif %}">Settings</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2024 AutoHeal-Py | Autonomous Runtime Resilience Framework</p>
+            <p class="footer-links">
+                <a href="https://github.com/Shubham1845-cs/py-autonomous-runtime-resilience" target="_blank">GitHub</a>
+                •
+                <a href="/docs">Documentation</a> •
+                <a href="mailto:support@autoheal.dev">Contact</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

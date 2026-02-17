@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Documentation | AutoHeal-Py{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Documentation</h1>
+    <p>Complete guide to using AutoHeal-Py in your microservices</p>
+</div>
+
+<div class="container docs-container">
+    <div class="docs-sidebar">
+        <nav class="docs-nav">
+            <a href="#quick-start" class="docs-link active">Quick Start</a>
+            <a href="#installation" class="docs-link">Installation</a>
+            <a href="#usage" class="docs-link">Usage</a>
+            <a href="#api" class="docs-link">API Reference</a>
+            <a href="#patterns" class="docs-link">Patterns</a>
+            <a href="#examples" class="docs-link">Examples</a>
+        </nav>
+    </div>
+
+    <div class="docs-content">
+        <section id="quick-start" class="docs-section">
+            <h2>Quick Start</h2>
+            <p>Get started with AutoHeal-Py in 3 simple steps:</p>
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Install the Framework</h3>
+                    <div class="code-block">
+                        <code>pip install autoheal-py</code>
+                    </div>
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Enable Monitoring</h3>
+                    <div class="code-block">
+                        <code>from autoheal import install_monitor<br>install_monitor()</code>
+                    </div>
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Your App is Protected!</h3>
+                    <p>AutoHeal-Py now monitors all HTTP calls and will automatically inject resilience patterns when
+                        failures are detected.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="installation" class="docs-section">
+            <h2>Installation</h2>
+            <p>Install from source:</p>
+            <div class="code-block">
+                <code>git clone https://github.com/Shubham1845-cs/py-autonomous-runtime-resilience.git<br>cd AutoHeal-Py<br>pip install -r requirements.txt</code>
+            </div>
+        </section>
+
+        <section id="usage" class="docs-section">
+            <h2>Usage</h2>
+            <h3>Basic Example</h3>
+            <div class="code-block">
+                <code>from autoheal import install_monitor<br>import requests<br><br># Enable monitoring<br>install_monitor()<br><br># Make HTTP calls as usual<br>response = requests.get('https://api.example.com/data')<br><br># AutoHeal monitors and protects automatically!</code>
+            </div>
+        </section>
+
+        <section id="api" class="docs-section">
+            <h2>API Reference</h2>
+            <h3>Monitor Module</h3>
+            <div class="api-method">
+                <code class="method-signature">install_monitor()</code>
+                <p>Patches the requests library to enable telemetry collection.</p>
+            </div>
+            <div class="api-method">
+                <code class="method-signature">get_health_summary(service_name: str) → Dict</code>
+                <p>Returns health status, failure rate, and latency for a service.</p>
+            </div>
+            <div class="api-method">
+                <code class="method-signature">get_metrics(service_name: str, window_seconds: int) → List[Dict]</code>
+                <p>Returns raw metrics for the specified time window.</p>
+            </div>
+        </section>
+
+        <section id="patterns" class="docs-section">
+            <h2>Resilience Patterns</h2>
+            <p>AutoHeal-Py includes three core patterns:</p>
+            <ul class="pattern-list">
+                <li><strong>Circuit Breaker:</strong> Prevents cascading failures</li>
+                <li><strong>Retry:</strong> Handles transient failures with exponential backoff</li>
+                <li><strong>Timeout:</strong> Enforces maximum wait time</li>
+            </ul>
+            <p>Visit the <a href="/patterns">Patterns page</a> for detailed information.</p>
+        </section>
+
+        <section id="examples" class="docs-section">
+            <h2>Examples</h2>
+            <h3>Flask Integration</h3>
+            <div class="code-block">
+                <code>from flask import Flask<br>from autoheal import install_monitor<br><br>app = Flask(__name__)<br>install_monitor()<br><br>@app.route('/api/data')<br>def get_data():<br>    # Your code here<br>    return {'status': 'ok'}</code>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

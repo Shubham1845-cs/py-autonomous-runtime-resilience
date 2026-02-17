@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | AutoHeal-Py{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Real-Time Dashboard</h1>
+    <p>Monitor service health and resilience patterns in real-time</p>
+</div>
+
+<div class="container">
+    <!-- Global Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-label">Total Services</span>
+            <span class="stat-value" id="dash-services">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Total Calls</span>
+            <span class="stat-value" id="dash-calls">0</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Active Patterns</span>
+            <span class="stat-value" id="dash-patterns">0</span>
+        </div>
+        <div class="stat-card status-indicator">
+            <span class="stat-label">System Status</span>
+            <span class="stat-value" id="dash-status">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Service Health Cards -->
+    <div class="section-header">
+        <h2>Service Health Monitoring</h2>
+        <div class="pulse-indicator">
+            <span class="pulse"></span>
+            <span>Live</span>
+        </div>
+    </div>
+
+    <div class="services-grid" id="services-container">
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Searching for monitored services...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
