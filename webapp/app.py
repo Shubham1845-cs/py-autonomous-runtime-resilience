@@ -6,10 +6,14 @@ import logging
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from autoheal.monitor import get_all_services, get_health_summary, get_metrics, _monitor
+from autoheal.monitor import get_all_services, get_health_summary, get_metrics, _monitor, install_monitor
 from autoheal.detector import create_detector
 from autoheal.injector import PatternInjector
 from autoheal.agent import AutoHealAgent
+
+# ─── Activate monitor (patches requests.get/post/put/delete/patch) ──────────
+install_monitor()
+
 
 # ─── logging ───────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -35,6 +39,33 @@ agent    = AutoHealAgent(
 # Start the autonomous agent in background when the Flask dev server starts
 # (use 'before_first_request' pattern for production; here we start directly)
 agent.start()
+
+# ─── Demo Traffic Seeder ─────────────────────────────────────────────────────
+# Simulates realistic HTTP traffic so the dashboard has live data without Saleor.
+# Injects calls directly into _monitor (bypasses real network).
+import threading, random, time as _time
+
+_DEMO_SERVICES = {
+    "payment-gateway": {"base_latency": 0.2, "fail_rate": 0.05},
+    "inventory-service": {"base_latency": 0.1, "fail_rate": 0.02},
+    "shipping-api":      {"base_latency": 0.35, "fail_rate": 0.08},
+    "auth-service":      {"base_latency": 0.05, "fail_rate": 0.01},
+}
+
+def _seed_demo_traffic():
+    while True:
+        for svc, cfg in _DEMO_SERVICES.items():
+            latency    = cfg["base_latency"] + random.uniform(-0.05, 0.2)
+            is_failure = random.random() < cfg["fail_rate"]
+            status     = random.choice([500, 503, 429]) if is_failure else 200
+            error      = "connection refused" if status in (503, 500) else None
+            _monitor.track_call(svc, max(0.01, latency), status, error)
+        _time.sleep(1.5)
+
+_seeder = threading.Thread(target=_seed_demo_traffic, daemon=True, name="demo-seeder")
+_seeder.start()
+
+
 
 # ─── Page routes ────────────────────────────────────────────────────────────
 
