@@ -1,90 +1,179 @@
 {% extends "base.html" %}
-
 {% block title %}AutoHeal-Py | Autonomous Runtime Resilience{% endblock %}
 
 {% block content %}
-<div class="hero-section">
-    <div class="hero-content">
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-badge">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Production-Ready Resilience Framework</span>
+        </div>
         <h1 class="hero-title">
-            <span class="gradient-text">AutoHeal-Py</span>
+            <span class="word-top">Autonomous</span>
+            <span class="word-grad">Runtime Resilience</span>
+            <span class="word-bottom">for Microservices</span>
         </h1>
-        <p class="hero-subtitle">Autonomous Runtime Resilience Framework for Microservices</p>
-        <p class="hero-description">
-            Zero-touch monitoring and self-healing for Python applications.
-            Detects failures in real-time and dynamically injects resilience patterns without code changes.
+        <p class="hero-desc">
+            Zero-touch monitoring that detects failures in real-time and dynamically
+            injects resilience patterns — no code changes, no redeployment.
         </p>
-        <div class="hero-buttons">
-            <a href="/dashboard" class="btn btn-primary">View Dashboard</a>
-            <a href="/docs" class="btn btn-secondary">Documentation</a>
+        <div class="hero-cta">
+            <a href="/dashboard" class="cta-btn cta-primary">
+                <i class="fa-solid fa-gauge-high"></i>
+                Open Dashboard
+            </a>
+            <a href="/docs" class="cta-btn cta-ghost">
+                <i class="fa-solid fa-book-open"></i>
+                Read the Docs
+            </a>
+        </div>
+        <div class="hero-stats">
+            <div class="hstat">
+                <i class="fa-solid fa-server"></i>
+                <div>
+                    <strong id="home-services">0</strong>
+                    <span>Services Monitored</span>
+                </div>
+            </div>
+            <div class="hstat-divider"></div>
+            <div class="hstat">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                <div>
+                    <strong id="home-calls">0</strong>
+                    <span>API Calls Tracked</span>
+                </div>
+            </div>
+            <div class="hstat-divider"></div>
+            <div class="hstat">
+                <i class="fa-solid fa-shield-halved"></i>
+                <div>
+                    <strong id="home-patterns">0</strong>
+                    <span>Active Patterns</span>
+                </div>
+            </div>
+            <div class="hstat-divider"></div>
+            <div class="hstat">
+                <i class="fa-solid fa-circle-dot"></i>
+                <div>
+                    <strong id="home-status">Operational</strong>
+                    <span>System Status</span>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+    <!-- 3D Hero Visual -->
+    <div class="hero-visual">
+        <div class="orbit-ring ring-1">
+            <div class="orbit-dot dot-a"><i class="fa-solid fa-circle-nodes"></i></div>
+        </div>
+        <div class="orbit-ring ring-2">
+            <div class="orbit-dot dot-b"><i class="fa-solid fa-database"></i></div>
+        </div>
+        <div class="orbit-ring ring-3">
+            <div class="orbit-dot dot-c"><i class="fa-solid fa-cloud"></i></div>
+        </div>
+        <div class="core-sphere">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+    </div>
+</section>
 
-<div class="features-section">
+<!-- FEATURES GRID -->
+<section class="features-section">
     <div class="container">
-        <h2 class="section-title">Key Features</h2>
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🔍</div>
+        <p class="section-eyebrow"><i class="fa-solid fa-wand-magic-sparkles"></i> Core Capabilities</p>
+        <h2 class="section-h2">Everything you need for<br>resilient microservices</h2>
+
+        <div class="feat-grid">
+            <div class="feat-card">
+                <div class="feat-icon-wrap" style="--c:#3b82f6">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                </div>
                 <h3>Real-Time Monitoring</h3>
-                <p>Passive observation of all HTTP calls with sliding window metrics and health analysis</p>
+                <p>Passive observation of all HTTP calls with sliding window metrics and continuous health analysis.</p>
+                <div class="feat-tag"><i class="fa-solid fa-bolt"></i> Zero Overhead</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🧠</div>
+            <div class="feat-card">
+                <div class="feat-icon-wrap" style="--c:#a855f7">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
                 <h3>Autonomous Detection</h3>
-                <p>Intelligent pattern recommendation based on failure signatures and error analysis</p>
+                <p>Intelligent pattern recommendation based on failure signatures — the system decides for itself.</p>
+                <div class="feat-tag"><i class="fa-solid fa-microchip"></i> AI-Powered</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
+            <div class="feat-card">
+                <div class="feat-icon-wrap" style="--c:#10b981">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
                 <h3>Zero-Touch Operation</h3>
-                <p>No code changes required. Monkey patching enables runtime instrumentation</p>
+                <p>Monkey patching enables full runtime instrumentation with no code changes or redeployment needed.</p>
+                <div class="feat-tag"><i class="fa-solid fa-check"></i> No Changes</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🛡️</div>
+            <div class="feat-card">
+                <div class="feat-icon-wrap" style="--c:#ef4444">
+                    <i class="fa-solid fa-circle-half-stroke"></i>
+                </div>
                 <h3>Circuit Breaker</h3>
-                <p>Prevents cascading failures with automatic state transitions (CLOSED → OPEN → HALF_OPEN)</p>
+                <p>Prevents cascading failures with automatic state transitions: CLOSED → OPEN → HALF_OPEN.</p>
+                <div class="feat-tag"><i class="fa-solid fa-shield"></i> Self-Healing</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">🔄</div>
+            <div class="feat-card">
+                <div class="feat-icon-wrap" style="--c:#f59e0b">
+                    <i class="fa-solid fa-rotate"></i>
+                </div>
                 <h3>Smart Retry</h3>
-                <p>Exponential backoff with jitter for transient failures and service overload</p>
+                <p>Exponential backoff with jitter for transient failures prevents thundering herd problems.</p>
+                <div class="feat-tag"><i class="fa-solid fa-clock-rotate-left"></i> Intelligent Retry</div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">⏱️</div>
+            <div class="feat-card">
+                <div class="feat-icon-wrap" style="--c:#06b6d4">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
                 <h3>Timeout Guard</h3>
-                <p>Thread-based timeout enforcement to prevent hanging on slow services</p>
+                <p>Thread-based timeout enforcement prevents hanging requests from blocking your services.</p>
+                <div class="feat-tag"><i class="fa-solid fa-stopwatch"></i> Thread-Safe</div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<div class="stats-preview">
+<!-- HOW IT WORKS -->
+<section class="how-section">
     <div class="container">
-        <h2 class="section-title">Live System Status</h2>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">🌐</div>
-                <div class="stat-value" id="home-services">0</div>
-                <div class="stat-label">Services Monitored</div>
+        <p class="section-eyebrow"><i class="fa-solid fa-diagram-project"></i> How It Works</p>
+        <h2 class="section-h2">Three-phase autonomous healing</h2>
+        <div class="how-steps">
+            <div class="how-step">
+                <div class="step-num">01</div>
+                <div class="step-icon"><i class="fa-solid fa-eye"></i></div>
+                <h3>Observe</h3>
+                <p>Monitor silently intercepts all HTTP calls via monkey patching, collecting latency, status codes and
+                    errors into a sliding window.</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">📊</div>
-                <div class="stat-value" id="home-calls">0</div>
-                <div class="stat-label">Total API Calls</div>
+            <div class="how-connector">
+                <i class="fa-solid fa-arrow-right"></i>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">🛡️</div>
-                <div class="stat-value" id="home-patterns">0</div>
-                <div class="stat-label">Active Patterns</div>
+            <div class="how-step">
+                <div class="step-num">02</div>
+                <div class="step-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+                <h3>Detect</h3>
+                <p>The detection engine analyzes failure signatures and classifies each service as HEALTHY, DEGRADED,
+                    SLOW, or CRITICAL.</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon">✅</div>
-                <div class="stat-value" id="home-status">Operational</div>
-                <div class="stat-label">System Status</div>
+            <div class="how-connector">
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>
+            <div class="how-step">
+                <div class="step-num">03</div>
+                <div class="step-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                <h3>Heal</h3>
+                <p>The agent autonomously injects the recommended resilience pattern — Circuit Breaker, Retry, or
+                    Timeout — without any code change.</p>
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}
@@ -92,14 +181,12 @@
     async function updateHomeStats() {
         try {
             const res = await fetch('/api/stats');
-            const stats = await res.json();
-            document.getElementById('home-services').textContent = stats.total_services;
-            document.getElementById('home-calls').textContent = stats.total_calls;
-            document.getElementById('home-patterns').textContent = stats.active_patterns;
-            document.getElementById('home-status').textContent = stats.system_status;
-        } catch (e) {
-            console.error('Failed to fetch stats:', e);
-        }
+            const s = await res.json();
+            document.getElementById('home-services').textContent = s.total_services;
+            document.getElementById('home-calls').textContent = s.total_calls.toLocaleString();
+            document.getElementById('home-patterns').textContent = s.active_patterns;
+            document.getElementById('home-status').textContent = s.system_status;
+        } catch (e) { }
     }
     setInterval(updateHomeStats, 3000);
     updateHomeStats();

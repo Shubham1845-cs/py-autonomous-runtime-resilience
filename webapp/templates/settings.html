@@ -1,90 +1,111 @@
 {% extends "base.html" %}
-
 {% block title %}Settings | AutoHeal-Py{% endblock %}
-
 {% block content %}
-<div class="page-header">
-    <h1>Settings</h1>
-    <p>Configure monitoring thresholds and pattern behavior</p>
+<div class="page-hero">
+    <div class="page-hero-inner">
+        <div class="page-hero-icon" style="--ic:#64748b">
+            <i class="fa-solid fa-sliders"></i>
+        </div>
+        <div>
+            <h1>Settings</h1>
+            <p>Configure monitoring thresholds and pattern behaviour</p>
+        </div>
+    </div>
 </div>
-
 <div class="container">
     <div class="settings-grid">
         <div class="settings-card">
-            <h2>Monitor Configuration</h2>
-            <div class="setting-item">
-                <label>Sliding Window (seconds)</label>
-                <input type="number" value="60" class="input-field">
-                <p class="setting-help">Time window for metrics collection</p>
+            <div class="sc-header"><i class="fa-solid fa-satellite-dish" style="color:#3b82f6"></i>
+                <h2>Monitor Config</h2>
             </div>
             <div class="setting-item">
-                <label>Max Entries Per Service</label>
-                <input type="number" value="1000" class="input-field">
-                <p class="setting-help">Maximum metrics stored per service</p>
-            </div>
-        </div>
-
-        <div class="settings-card">
-            <h2>Detection Thresholds</h2>
-            <div class="setting-item">
-                <label>Critical Failure Rate (%)</label>
-                <input type="number" value="50" class="input-field">
-                <p class="setting-help">Threshold for CRITICAL state</p>
+                <label><i class="fa-solid fa-clock-rotate-left"></i> Sliding Window (s)</label>
+                <input type="number" value="60" class="glass-input">
+                <p class="setting-hint">Time window for metric collection</p>
             </div>
             <div class="setting-item">
-                <label>Degraded Failure Rate (%)</label>
-                <input type="number" value="20" class="input-field">
-                <p class="setting-help">Threshold for DEGRADED state</p>
-            </div>
-            <div class="setting-item">
-                <label>Slow Latency Threshold (s)</label>
-                <input type="number" step="0.1" value="3.0" class="input-field">
-                <p class="setting-help">Latency threshold for SLOW state</p>
+                <label><i class="fa-solid fa-database"></i> Max Entries / Service</label>
+                <input type="number" value="1000" class="glass-input">
+                <p class="setting-hint">Maximum records stored per service</p>
             </div>
         </div>
-
         <div class="settings-card">
-            <h2>Circuit Breaker</h2>
-            <div class="setting-item">
-                <label>Failure Threshold</label>
-                <input type="number" value="5" class="input-field">
-                <p class="setting-help">Failures before opening circuit</p>
+            <div class="sc-header"><i class="fa-solid fa-magnifying-glass-chart" style="color:#a855f7"></i>
+                <h2>Detection Thresholds</h2>
             </div>
             <div class="setting-item">
-                <label>Timeout (seconds)</label>
-                <input type="number" value="30" class="input-field">
-                <p class="setting-help">Time before attempting recovery</p>
+                <label><i class="fa-solid fa-skull-crossbones" style="color:#ef4444"></i> Critical Failure Rate
+                    (%)</label>
+                <input type="number" value="50" class="glass-input">
+            </div>
+            <div class="setting-item">
+                <label><i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b"></i> Degraded Failure Rate
+                    (%)</label>
+                <input type="number" value="20" class="glass-input">
+            </div>
+            <div class="setting-item">
+                <label><i class="fa-solid fa-gauge-high" style="color:#06b6d4"></i> Slow Latency Threshold (s)</label>
+                <input type="number" step="0.1" value="3.0" class="glass-input">
             </div>
         </div>
-
         <div class="settings-card">
-            <h2>Retry Pattern</h2>
-            <div class="setting-item">
-                <label>Max Attempts</label>
-                <input type="number" value="3" class="input-field">
-                <p class="setting-help">Maximum retry attempts</p>
+            <div class="sc-header"><i class="fa-solid fa-circle-half-stroke" style="color:#ef4444"></i>
+                <h2>Circuit Breaker</h2>
             </div>
             <div class="setting-item">
-                <label>Backoff Base</label>
-                <input type="number" step="0.1" value="2.0" class="input-field">
-                <p class="setting-help">Base for exponential backoff</p>
+                <label><i class="fa-solid fa-hashtag"></i> Failure Threshold</label>
+                <input type="number" value="5" class="glass-input">
             </div>
             <div class="setting-item">
-                <label>Max Delay (seconds)</label>
-                <input type="number" value="10" class="input-field">
-                <p class="setting-help">Maximum delay between retries</p>
+                <label><i class="fa-solid fa-hourglass"></i> Timeout (seconds)</label>
+                <input type="number" value="30" class="glass-input">
+            </div>
+        </div>
+        <div class="settings-card">
+            <div class="sc-header"><i class="fa-solid fa-rotate" style="color:#f59e0b"></i>
+                <h2>Retry Pattern</h2>
+            </div>
+            <div class="setting-item">
+                <label><i class="fa-solid fa-repeat"></i> Max Attempts</label>
+                <input type="number" value="3" class="glass-input">
+            </div>
+            <div class="setting-item">
+                <label><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Backoff Base</label>
+                <input type="number" step="0.1" value="2.0" class="glass-input">
+            </div>
+            <div class="setting-item">
+                <label><i class="fa-solid fa-stopwatch"></i> Max Delay (seconds)</label>
+                <input type="number" value="10" class="glass-input">
             </div>
         </div>
     </div>
-
     <div class="settings-actions">
-        <button class="btn btn-primary">Save Configuration</button>
-        <button class="btn btn-secondary">Reset to Defaults</button>
+        <button class="cta-btn cta-primary" onclick="saveSettings()">
+            <i class="fa-solid fa-floppy-disk"></i> Save Configuration
+        </button>
+        <button class="cta-btn cta-ghost" onclick="resetSettings()">
+            <i class="fa-solid fa-rotate-left"></i> Reset to Defaults
+        </button>
     </div>
-
-    <div class="info-box">
-        <strong>Note:</strong> Configuration changes will take effect immediately for new pattern injections.
-        Existing patterns will continue with their original configuration.
+    <div class="info-banner">
+        <i class="fa-solid fa-circle-info"></i>
+        <strong>Note:</strong> Changes take effect immediately for new pattern injections. Existing patterns retain
+        their original configuration until removed.
     </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    function saveSettings() {
+        const btn = event.target;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Saved!';
+        setTimeout(() => btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save Configuration', 2000);
+    }
+    function resetSettings() {
+        document.querySelectorAll('.glass-input').forEach((el, i) => {
+            const defaults = [60, 1000, 50, 20, 3.0, 5, 30, 3, 2.0, 10];
+            el.value = defaults[i] ?? el.value;
+        });
+    }
+</script>
 {% endblock %}

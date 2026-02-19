@@ -1,30 +1,38 @@
-// Main JavaScript for AutoHeal-Py Dashboard
-
-// Utility function for formatting timestamps
-function formatTimestamp(timestamp) {
-    const date = new Date(timestamp * 1000);
-    return date.toLocaleTimeString();
-}
-
-// Utility function for formatting duration
+// main.js — shared utilities
 function formatDuration(seconds) {
-    if (seconds < 1) {
-        return (seconds * 1000).toFixed(0) + 'ms';
-    }
-    return seconds.toFixed(3) + 's';
+    return seconds < 1 ? (seconds * 1000).toFixed(0) + 'ms' : seconds.toFixed(3) + 's';
+}
+function formatTimestamp(ts) {
+    return new Date(ts * 1000).toLocaleTimeString();
 }
 
-// Global error handler
-window.addEventListener('unhandledrejection', event => {
-    console.error('Unhandled promise rejection:', event.reason);
-});
+// Particle background
+(function spawnParticles() {
+    const el = document.getElementById('particles');
+    if (!el) return;
+    for (let i = 0; i < 35; i++) {
+        const p = document.createElement('div');
+        const size = Math.random() * 3 + 1;
+        p.style.cssText = `
+            position:absolute;
+            width:${size}px; height:${size}px;
+            border-radius:50%;
+            background:rgba(79,142,247,${Math.random() * 0.4 + 0.1});
+            left:${Math.random() * 100}%;
+            top:${Math.random() * 100}%;
+            animation:particleDrift ${10 + Math.random() * 15}s linear ${Math.random() * 10}s infinite;
+        `;
+        el.appendChild(p);
+    }
 
-// Add active class to current nav link
-document.addEventListener('DOMContentLoaded', () => {
-    const currentPath = window.location.pathname;
-    document.querySelectorAll('.nav-link').forEach(link => {
-        if (link.getAttribute('href') === currentPath) {
-            link.classList.add('active');
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes particleDrift {
+            0%   { transform:translateY(0) translateX(0); opacity:0; }
+            10%  { opacity:1; }
+            90%  { opacity:.5; }
+            100% { transform:translateY(-120vh) translateX(${Math.random()>0.5?'':'-'}${Math.random()*60}px); opacity:0; }
         }
-    });
-});
+    `;
+    document.head.appendChild(style);
+})();

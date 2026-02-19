@@ -1,7 +1,4 @@
-"""
-AutoHeal-Py Web Application
-Professional multi-page dashboard for monitoring and controlling the resilience framework.
-"""
+
 
 from flask import Flask, render_template, jsonify, request
 import sys
@@ -140,8 +137,8 @@ def api_patterns_info():
     })
 
 if __name__ == '__main__':
-    print("🚀 AutoHeal-Py Dashboard starting...")
-    print("📊 Dashboard: http://localhost:5000")
-    print("🔍 Monitor: http://localhost:5000/monitor")
-    print("🛡️ Patterns: http://localhost:5000/patterns")
+    print(" AutoHeal-Py Dashboard starting...")
+    print(" Dashboard: http://localhost:5000")
+    print(" Monitor: http://localhost:5000/monitor")
+    print(" Patterns: http://localhost:5000/patterns")
     app.run(debug=True, host='0.0.0.0', port=5000)
