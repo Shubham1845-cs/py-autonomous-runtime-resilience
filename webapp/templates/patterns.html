@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Resilience Patterns | AutoHeal-Py{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div class="page-hero-inner">
+        <div class="page-hero-icon" style="--ic:#10b981">
+            <i class="fa-solid fa-layer-group"></i>
+        </div>
+        <div>
+            <h1>Resilience Patterns</h1>
+            <p>Three battle-tested patterns that protect your microservices</p>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Circuit Breaker -->
+    <div class="pattern-3d-card">
+        <div class="p3d-side p3d-left" style="--pc:#ef4444">
+            <i class="fa-solid fa-circle-half-stroke"></i>
+            <h2>Circuit Breaker</h2>
+            <p>Prevents cascading failures by failing fast when a service is unhealthy. State machine with automatic
+                transitions and recovery detection.</p>
+        </div>
+        <div class="p3d-right">
+            <div class="state-machine">
+                <div class="sm-node sm-closed">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>CLOSED</span>
+                    <small>Normal</small>
+                </div>
+                <div class="sm-arrow">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    <span>Threshold hit</span>
+                </div>
+                <div class="sm-node sm-open">
+                    <i class="fa-solid fa-ban"></i>
+                    <span>OPEN</span>
+                    <small>Fail fast</small>
+                </div>
+                <div class="sm-arrow">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    <span>Timeout</span>
+                </div>
+                <div class="sm-node sm-half">
+                    <i class="fa-solid fa-circle-half-stroke"></i>
+                    <span>HALF-OPEN</span>
+                    <small>Recovery probe</small>
+                </div>
+            </div>
+            <div class="config-chips">
+                <div class="chip"><i class="fa-solid fa-hashtag"></i> Threshold: 5 failures</div>
+                <div class="chip"><i class="fa-solid fa-clock"></i> Timeout: 30s</div>
+                <div class="chip"><i class="fa-solid fa-vial"></i> Probe: 1 call</div>
+            </div>
+            <div class="when-use">
+                <div class="wu-title"><i class="fa-solid fa-circle-question"></i> When is it injected?</div>
+                <div class="wu-item"><i class="fa-solid fa-circle-dot"></i> Failure rate ≥ 50%</div>
+                <div class="wu-item"><i class="fa-solid fa-circle-dot"></i> Connection failures &gt; 30%</div>
+                <div class="wu-item"><i class="fa-solid fa-circle-dot"></i> Cascading failure risk detected</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Retry -->
+    <div class="pattern-3d-card">
+        <div class="p3d-side p3d-left" style="--pc:#f59e0b">
+            <i class="fa-solid fa-rotate"></i>
+            <h2>Retry with Backoff</h2>
+            <p>Automatically retries failed requests with exponential delays plus jitter to prevent thundering herd
+                problems.</p>
+        </div>
+        <div class="p3d-right">
+            <div class="backoff-viz">
+                <div class="bv-title"><i class="fa-solid fa-chart-gantt"></i> Backoff Timeline</div>
+                <div class="bv-bars">
+                    <div class="bv-bar" style="--w:10%"><span>Attempt 1</span>
+                        <div class="bv-fill" style="--c:#f59e0b"></div><span class="bv-lbl">1s</span>
+                    </div>
+                    <div class="bv-bar" style="--w:20%"><span>Attempt 2</span>
+                        <div class="bv-fill" style="--c:#f59e0b"></div><span class="bv-lbl">2s</span>
+                    </div>
+                    <div class="bv-bar" style="--w:40%"><span>Attempt 3</span>
+                        <div class="bv-fill" style="--c:#f59e0b"></div><span class="bv-lbl">4s</span>
+                    </div>
+                    <div class="bv-bar" style="--w:80%"><span>Attempt 4</span>
+                        <div class="bv-fill" style="--c:#ef4444"></div><span class="bv-lbl">8s (max)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="config-chips">
+                <div class="chip"><i class="fa-solid fa-repeat"></i> Max: 3 retries</div>
+                <div class="chip"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> Base: 2x backoff</div>
+                <div class="chip"><i class="fa-solid fa-shuffle"></i> Jitter: enabled</div>
+            </div>
+            <div class="when-use">
+                <div class="wu-title"><i class="fa-solid fa-circle-question"></i> When is it injected?</div>
+                <div class="wu-item"><i class="fa-solid fa-circle-dot"></i> 503 errors &gt; 30%</div>
+                <div class="wu-item"><i class="fa-solid fa-circle-dot"></i> Timeout errors &gt; 20%</div>
+                <div class="wu-item"><i class="fa-solid fa-circle-dot"></i> Transient network failures</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeout -->
+    <div class="pattern-3d-card">
+        <div class="p3d-side p3d-left" style="--pc:#06b6d4">
+            <i class="fa-solid fa-hourglass-half"></i>
+            <h2>Timeout Guard</h2>
+            <p>Enforces a maximum wait time for all service calls using thread-based enforcement to prevent request
+                starvation.</p>
+        </div>
+        <div class="p3d-right">
+            <div class="timeout-viz">
+                <div class="tv-title"><i class="fa-solid fa-arrow-right-to-bracket"></i> Execution Flow</div>
+                <div class="tv-flow">
+                    <div class="tv-node"><i class="fa-solid fa-play"></i><span>Call Start</span></div>
+                    <div class="tv-arrow"><i class="fa-solid fa-right-long"></i></div>
+                    <div class="tv-node"><i class="fa-solid fa-microchip"></i><span>Monitor Thread</span></div>
+                    <div class="tv-arrow"><i class="fa-solid fa-right-long"></i></div>
+                    <div class="tv-node tv-either">
+                        <div class="tv-either-part"><i class="fa-solid fa-check"
+                                style="color:#10b981"></i><span>Complete</span></div>
+                        <div class="tv-either-or">OR</div>
+                        <div class="tv-either-part"><i class="fa-solid fa-xmark"
+                                style="color:#ef4444"></i><span>Timeout!</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="config-chips">
+                <div class="chip"><i class="fa-solid fa-stopwatch-20"></i> Max: 5 seconds</div>
+                <div class="chip"><i class="fa-solid fa-gears"></i> Thread-based</div>
+                <div class="chip"><i class="fa-solid fa-lock-open"></i> No external deps</div>
+            </div>
+            <div class="when-use">
+                <div class="wu-title"><i class="fa-solid fa-circle-question"></i> When is it injected?</div>
+                <div class="wu-item"><i class="fa-solid fa-circle-dot"></i> Avg latency &gt; 3 seconds</div>
+                <div class="wu-item"><i class="fa-solid fa-circle-dot"></i> Slow DB or external APIs</div>
+                <div class="wu-item"><i class="fa-solid fa-circle-dot"></i> Hanging request prevention</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

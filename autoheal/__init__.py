@@ -11,11 +11,21 @@ __version__ = "0.1.0"
 __author__ = "AutoHeal-Py Team"
 
 from .monitor import install_monitor, get_metrics, calculate_failure_rate
-from .agent import AutoHealAgent
+from .injector import PatternInjector, get_injector, with_circuit_breaker, with_retry, with_timeout
+from .agent import AutoHealAgent, create_agent
 
 __all__ = [
+    # Monitor
     "install_monitor",
-    "get_metrics", 
+    "get_metrics",
     "calculate_failure_rate",
-    "AutoHealAgent"
+    # Injector
+    "PatternInjector",
+    "get_injector",
+    "with_circuit_breaker",
+    "with_retry",
+    "with_timeout",
+    # Agent
+    "AutoHealAgent",
+    "create_agent",
 ]

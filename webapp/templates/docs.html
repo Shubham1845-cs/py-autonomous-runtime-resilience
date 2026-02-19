@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Documentation | AutoHeal-Py{% endblock %}
+{% block content %}
+<div class="page-hero">
+    <div class="page-hero-inner">
+        <div class="page-hero-icon" style="--ic:#f59e0b">
+            <i class="fa-solid fa-book-open"></i>
+        </div>
+        <div>
+            <h1>Documentation</h1>
+            <p>Complete integration guide and API reference</p>
+        </div>
+    </div>
+</div>
+<div class="container docs-container">
+    <aside class="docs-sidebar">
+        <div class="docs-nav-card">
+            <div class="docs-nav-title"><i class="fa-solid fa-compass"></i> Contents</div>
+            <a href="#quick-start" class="docs-link active"><i class="fa-solid fa-rocket"></i> Quick Start</a>
+            <a href="#installation" class="docs-link"><i class="fa-solid fa-box-open"></i> Installation</a>
+            <a href="#usage" class="docs-link"><i class="fa-solid fa-code"></i> Usage</a>
+            <a href="#api" class="docs-link"><i class="fa-solid fa-plug"></i> API Reference</a>
+            <a href="#patterns" class="docs-link"><i class="fa-solid fa-layer-group"></i> Patterns</a>
+            <a href="#examples" class="docs-link"><i class="fa-solid fa-flask"></i> Examples</a>
+        </div>
+    </aside>
+    <div class="docs-content">
+        <section id="quick-start" class="docs-section">
+            <h2><i class="fa-solid fa-rocket"></i> Quick Start</h2>
+            <p>Get AutoHeal-Py protecting your services in 3 simple steps:</p>
+            <div class="step-card">
+                <div class="step-num">01</div>
+                <div>
+                    <h3>Install</h3>
+                    <div class="code-block"><i class="fa-brands fa-python"></i> <code>pip install autoheal-py</code>
+                    </div>
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">02</div>
+                <div>
+                    <h3>Enable Monitor</h3>
+                    <div class="code-block"><code>from autoheal import install_monitor<br>install_monitor()</code></div>
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">03</div>
+                <div>
+                    <h3>Done! You are protected</h3>
+                    <p>AutoHeal now monitors all HTTP calls and autonomously injects resilience patterns on failure
+                        detection.</p>
+                </div>
+            </div>
+        </section>
+        <section id="installation" class="docs-section">
+            <h2><i class="fa-solid fa-box-open"></i> Installation</h2>
+            <div class="code-block">
+                <code>git clone https://github.com/Shubham1845-cs/py-autonomous-runtime-resilience.git<br>cd AutoHeal-Py<br>pip install -r requirements.txt</code>
+            </div>
+        </section>
+        <section id="usage" class="docs-section">
+            <h2><i class="fa-solid fa-code"></i> Usage</h2>
+            <div class="code-block">
+                <code>from autoheal import install_monitor<br>import requests<br><br>install_monitor()   # One-time setup<br><br>response = requests.get('https://api.example.com/data')<br># AutoHeal monitors and protects automatically!</code>
+            </div>
+        </section>
+        <section id="api" class="docs-section">
+            <h2><i class="fa-solid fa-plug"></i> API Reference</h2>
+            <div class="api-method"><code class="api-sig">install_monitor()</code>
+                <p>Patches the requests library for telemetry collection.</p>
+            </div>
+            <div class="api-method"><code class="api-sig">get_health_summary(service_name: str) → Dict</code>
+                <p>Returns health status, failure rate and latency for a service.</p>
+            </div>
+            <div class="api-method"><code
+                    class="api-sig">get_metrics(service_name: str, window_seconds: int) → List</code>
+                <p>Returns raw call metrics for the specified time window.</p>
+            </div>
+        </section>
+        <section id="patterns" class="docs-section">
+            <h2><i class="fa-solid fa-layer-group"></i> Patterns</h2>
+            <ul class="doc-list">
+                <li><i class="fa-solid fa-circle-half-stroke" style="color:#ef4444"></i> <strong>Circuit
+                        Breaker</strong> — Prevents cascading failures</li>
+                <li><i class="fa-solid fa-rotate" style="color:#f59e0b"></i> <strong>Retry</strong> — Handles transient
+                    failures with exponential backoff</li>
+                <li><i class="fa-solid fa-hourglass-half" style="color:#06b6d4"></i> <strong>Timeout</strong> — Enforces
+                    maximum wait time</li>
+            </ul>
+        </section>
+        <section id="examples" class="docs-section">
+            <h2><i class="fa-solid fa-flask"></i> Flask Example</h2>
+            <div class="code-block">
+                <code>from flask import Flask<br>from autoheal import install_monitor<br><br>app = Flask(__name__)<br>install_monitor()<br><br>@app.route('/api/data')<br>def get_data():<br>    return {'status': 'ok'}</code>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

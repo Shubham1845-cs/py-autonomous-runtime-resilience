@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AutoHeal-Py{% endblock %}</title>
+
+    <!-- Font Awesome 6 - Real Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- Animated 3D Background -->
+    <div class="bg-scene">
+        <div class="bg-grid"></div>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="particles" id="particles"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="brand-text-wrap">
+                    <span class="brand-text">AutoHeal</span>
+                    <span class="brand-sub">Resilience Framework</span>
+                </div>
+            </a>
+            <ul class="nav-menu">
+                <li>
+                    <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/dashboard" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/monitor" class="nav-link {% if request.path == '/monitor' %}active{% endif %}">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Monitor</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/patterns" class="nav-link {% if request.path == '/patterns' %}active{% endif %}">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>Patterns</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/docs" class="nav-link {% if request.path == '/docs' %}active{% endif %}">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Docs</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/settings" class="nav-link {% if request.path == '/settings' %}active{% endif %}">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </ul>
+            <div class="nav-status">
+                <span class="status-dot"></span>
+                <span class="status-text">Live</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <i class="fa-solid fa-shield-halved footer-icon"></i>
+                <span>AutoHeal-Py</span>
+            </div>
+            <p class="footer-copy">&copy; 2026 AutoHeal-Py &mdash; Autonomous Runtime Resilience Framework</p>
+            <div class="footer-links">
+                <a href="https://github.com/Shubham1845-cs/py-autonomous-runtime-resilience" target="_blank">
+                    <i class="fa-brands fa-github"></i> GitHub
+                </a>
+                <a href="/docs">
+                    <i class="fa-solid fa-file-lines"></i> Docs
+                </a>
+                <a href="mailto:support@autoheal.dev">
+                    <i class="fa-solid fa-envelope"></i> Contact
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

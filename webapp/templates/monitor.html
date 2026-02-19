@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Monitor | AutoHeal-Py{% endblock %}
+
+{% block content %}
+<div class="page-hero">
+    <div class="page-hero-inner">
+        <div class="page-hero-icon" style="--ic:#a855f7">
+            <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div>
+            <h1>Telemetry Monitor</h1>
+            <p>Drill down into per-service metrics and pattern recommendations</p>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="monitor-controls">
+        <div class="control-group">
+            <i class="fa-solid fa-server"></i>
+            <select id="service-selector" class="glass-select">
+                <option value="">— Select a Service —</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <i class="fa-solid fa-clock"></i>
+            <select id="time-range" class="glass-select">
+                <option value="60">Last 1 minute</option>
+                <option value="300" selected>Last 5 minutes</option>
+                <option value="900">Last 15 minutes</option>
+                <option value="3600">Last 1 hour</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="service-detail" class="service-detail hidden">
+        <div class="detail-topbar">
+            <div class="detail-name-wrap">
+                <i class="fa-solid fa-circle-node"></i>
+                <h2 id="detail-service-name">Service</h2>
+                <span id="detail-status-badge" class="badge-pill">Healthy</span>
+            </div>
+        </div>
+
+        <div class="metrics-row">
+            <div class="metric-tile">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <div class="metric-val" id="detail-failure-rate">0%</div>
+                <div class="metric-lbl">Failure Rate</div>
+            </div>
+            <div class="metric-tile">
+                <i class="fa-solid fa-stopwatch"></i>
+                <div class="metric-val" id="detail-latency">0s</div>
+                <div class="metric-lbl">Avg Latency</div>
+            </div>
+            <div class="metric-tile">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                <div class="metric-val" id="detail-calls">0</div>
+                <div class="metric-lbl">Total Calls</div>
+            </div>
+            <div class="metric-tile">
+                <i class="fa-solid fa-window-maximize"></i>
+                <div class="metric-val" id="detail-window">60s</div>
+                <div class="metric-lbl">Window</div>
+            </div>
+        </div>
+
+        <div class="recommendation-panel" id="recommendation-box" style="display:none">
+            <div class="rec-header">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Recommended Pattern</span>
+            </div>
+            <div class="rec-body">
+                <div class="rec-pattern-name" id="rec-pattern">—</div>
+                <div class="rec-reason" id="rec-reason">—</div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <div class="table-header">
+                <i class="fa-solid fa-list-ul"></i>
+                <h3>Recent Calls</h3>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th><i class="fa-regular fa-clock"></i> Timestamp</th>
+                        <th><i class="fa-solid fa-stopwatch"></i> Duration</th>
+                        <th><i class="fa-solid fa-signal"></i> Status</th>
+                        <th><i class="fa-solid fa-circle-exclamation"></i> Error</th>
+                    </tr>
+                </thead>
+                <tbody id="metrics-table-body">
+                    <tr>
+                        <td colspan="4" class="empty-row">Select a service to view recent calls</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/monitor.js') }}"></script>
+{% endblock %}

@@ -1,15 +1,9 @@
 """
-Resilience Patterns Package
-
-Implementations of resilience patterns that can be dynamically injected:
-- Circuit Breaker
-- Retry with Exponential Backoff
-- Timeout
+Package init for autoheal.patterns
 """
-
 from .circuit_breaker import CircuitBreaker, CircuitState, CircuitBreakerOpenError
 from .retry import RetryPolicy, RetryExhaustedError
-from .timeout import TimeoutGuard, TimeoutError
+from .timeout import TimeoutGuard
 
 __all__ = [
     "CircuitBreaker",
@@ -18,5 +12,4 @@ __all__ = [
     "RetryPolicy",
     "RetryExhaustedError",
     "TimeoutGuard",
-    "TimeoutError"
 ]
