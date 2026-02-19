@@ -54,8 +54,22 @@
         </div>
     </div>
 
+    <!-- Agent Status Mini-Bar -->
+    <div class="section-header" style="margin-top:2rem">
+        <h2><i class="fa-solid fa-brain"></i> AutoHeal Agent</h2>
+        <div class="agent-status-bar" id="agent-status-bar">
+            <span class="agent-pill"><i class="fa-solid fa-rotate fa-spin"></i> <span id="ag-scans">—</span>
+                scans</span>
+            <span class="agent-pill"><i class="fa-solid fa-clock"></i> <span id="ag-uptime">—</span></span>
+            <span class="agent-pill"><i class="fa-solid fa-shield-halved" style="color:var(--green)"></i> <span
+                    id="ag-active">—</span> active</span>
+            <span class="agent-pill" id="ag-running-pill"><i class="fa-solid fa-circle" style="color:var(--green)"></i>
+                Running</span>
+        </div>
+    </div>
+
     <!-- Services -->
-    <div class="section-header">
+    <div class="section-header" style="margin-top:1.5rem">
         <h2><i class="fa-solid fa-network-wired"></i> Service Health</h2>
     </div>
 
@@ -63,6 +77,19 @@
         <div class="empty-card">
             <i class="fa-solid fa-satellite-dish fa-spin"></i>
             <p>Scanning for monitored services…</p>
+        </div>
+    </div>
+
+    <!-- Agent Events Feed -->
+    <div class="section-header" style="margin-top:2.5rem">
+        <h2><i class="fa-solid fa-timeline"></i> Agent Events <span class="live-badge" style="font-size:.7rem"><span
+                    class="live-dot"></span>Live</span></h2>
+    </div>
+
+    <div class="events-feed" id="events-feed">
+        <div class="event-empty">
+            <i class="fa-solid fa-hourglass-half fa-beat-fade"></i>
+            <span>Waiting for agent events…</span>
         </div>
     </div>
 </div>
