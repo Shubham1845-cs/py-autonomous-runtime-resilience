@@ -68,6 +68,21 @@
         </div>
     </div>
 
+    <!-- ── 3D Network Topology ── -->
+    <div class="section-header" style="margin-top:1.5rem">
+        <h2><i class="fa-solid fa-diagram-project"></i> Service Topology <span
+                style="font-size:.7rem;opacity:.5;font-weight:400">— 3D Live View</span></h2>
+    </div>
+    <div class="topology-wrap">
+        <canvas id="topology-canvas"></canvas>
+        <div class="topology-legend">
+            <span class="tl-dot" style="background:#10b981"></span> Healthy
+            <span class="tl-dot" style="background:#f59e0b"></span> Degraded
+            <span class="tl-dot" style="background:#ef4444"></span> Critical
+            <span class="tl-dot" style="background:#a855f7"></span> Protected
+        </div>
+    </div>
+
     <!-- Services -->
     <div class="section-header" style="margin-top:1.5rem">
         <h2><i class="fa-solid fa-network-wired"></i> Service Health</h2>
@@ -97,4 +112,15 @@
 
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script type="module">
+    import { initTopology, updateTopology } from "{{ url_for('static', filename='js/topology3d.js') }}";
+
+    const canvas = document.getElementById('topology-canvas');
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+    initTopology(canvas);
+
+    // Feed fresh service data into the 3D scene on every poll
+    window._topology3dUpdate = updateTopology;
+</script>
 {% endblock %}

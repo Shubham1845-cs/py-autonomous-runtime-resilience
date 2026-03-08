@@ -17,6 +17,9 @@ const EVENT_META = {
 };
 
 // ── SERVICE CARDS ─────────────────────────────────────────────────────────
+// Track previous pattern state per service to detect changes
+const _prevPatterns = {};
+
 async function updateDashboard() {
     try {
         const [statsRes, servicesRes] = await Promise.all([
@@ -25,6 +28,11 @@ async function updateDashboard() {
         ]);
         const stats    = await statsRes.json();
         const services = await servicesRes.json();
+
+        // Feed 3D topology (if module is loaded)
+        if (typeof window._topology3dUpdate === 'function') {
+            window._topology3dUpdate(services);
+        }
 
         // Stats bar
         document.getElementById('dash-services').textContent = stats.total_services;
@@ -60,21 +68,81 @@ async function updateDashboard() {
                 slow:     'fa-gauge-simple-low',
             }[s.status] ?? 'fa-circle-question';
 
-            // Active pattern badge (NEW)
-            const patternBadge = s.active_pattern
-                ? (() => {
-                    const m = PATTERN_META[s.active_pattern] ?? { icon: 'fa-shield-halved', label: s.active_pattern, color: '#6b7280' };
-                    return `<div class="active-pattern-badge" style="--pbg:${m.color}20;--pc:${m.color}">
-                                <i class="fa-solid ${m.icon}"></i> ${m.label} Active
-                            </div>`;
-                  })()
-                : '';
+        // ── Pattern UI: badge + explanation panel ──────────────────────────
+        const PATTERN_EXPLAIN = {
+            retry: {
+                what: 'Retry with Exponential Backoff',
+                why:  'High rate of transient failures (HTTP 5xx / network errors) detected.',
+                does: 'Automatically re-attempts failed requests up to <b>3×</b> using exponential backoff, recovering from temporary outages without crashing.',
+                icon: 'fa-rotate-right',
+                color: '#3b82f6',
+            },
+            circuit_breaker: {
+                what: 'Circuit Breaker',
+                why:  'Sustained failure rate crossed critical threshold — service is overloaded.',
+                does: 'Stops all traffic to the failing service immediately <b>(OPEN state)</b>, preventing cascading failures. Auto-retries after a cooldown period.',
+                icon: 'fa-bolt',
+                color: '#f59e0b',
+            },
+            timeout: {
+                what: 'Timeout Guard',
+                why:  'Average response latency is dangerously high — requests hanging.',
+                does: 'Cuts off slow requests after a configurable deadline, preventing thread exhaustion and resource starvation on the client side.',
+                icon: 'fa-hourglass-half',
+                color: '#a855f7',
+            },
+        };
 
-            const barColor = healthPct > 60
-                ? 'linear-gradient(90deg,var(--green),var(--accent))'
-                : healthPct > 30
-                    ? 'linear-gradient(90deg,var(--amber),var(--red))'
-                    : 'var(--red)';
+        let patternPanel = '';
+        if (s.active_pattern) {
+            const ex  = PATTERN_EXPLAIN[s.active_pattern] ?? { what: s.active_pattern, why: 'Anomaly detected.', does: 'Resilience pattern active.', icon: 'fa-shield-halved', color: '#6b7280' };
+            const cfg = s.pattern_details?.config ?? {};
+            const age = s.pattern_details?.age_seconds != null ? Math.round(s.pattern_details.age_seconds) + 's' : 'N/A';
+
+            // Config rows (only show fields that exist)
+            const cfgRows = Object.entries(cfg).map(([k, v]) =>
+                `<div class="pi-cfg-row"><span class="pi-cfg-key">${k.replace(/_/g,' ')}</span><span class="pi-cfg-val">${v}</span></div>`
+            ).join('');
+
+            patternPanel = `
+            <div class="pattern-info-panel" style="--pc:${ex.color};--pbg:${ex.color}18">
+              <div class="pip-header">
+                <div class="pip-badge">
+                  <i class="fa-solid fa-shield-halved pip-shield"></i>
+                  <span class="pip-label">PROTECTED</span>
+                </div>
+                <span class="pip-pattern-name"><i class="fa-solid ${ex.icon}"></i> ${ex.what}</span>
+              </div>
+
+              <div class="pip-row">
+                <span class="pip-field-label"><i class="fa-solid fa-arrow-right"></i> Wrapping</span>
+                <span class="pip-field-val"><code>requests</code> library calls to <code>${s.service}</code></span>
+              </div>
+              <div class="pip-row">
+                <span class="pip-field-label"><i class="fa-solid fa-triangle-exclamation"></i> Triggered by</span>
+                <span class="pip-field-val">${ex.why}</span>
+              </div>
+              <div class="pip-row">
+                <span class="pip-field-label"><i class="fa-solid fa-circle-info"></i> What it does</span>
+                <span class="pip-field-val">${ex.does}</span>
+              </div>
+              ${cfgRows ? `<div class="pip-cfg-block"><div class="pip-cfg-title">⚙️ Pattern Config</div>${cfgRows}</div>` : ''}
+              <div class="pip-age">Active for <b>${age}</b></div>
+            </div>`;
+        }
+
+        const barColor = healthPct > 60
+            ? 'linear-gradient(90deg,var(--green),var(--accent))'
+            : healthPct > 30
+                ? 'linear-gradient(90deg,var(--amber),var(--red))'
+                : 'var(--red)';
+
+            // Detect pattern change to trigger flash animation
+            const prevPattern = _prevPatterns[s.service];
+            const curPattern  = s.active_pattern || null;
+            const patternChanged = prevPattern !== curPattern;
+            _prevPatterns[s.service] = curPattern;
+            const flashClass = patternChanged && curPattern ? ' pip-flash' : '';
 
             return `
             <div class="service-card ${s.status}">
@@ -88,7 +156,7 @@ async function updateDashboard() {
                   ${s.status}
                 </span>
               </div>
-              ${patternBadge}
+              <div class="pattern-panel-slot${flashClass}">${patternPanel}</div>
               <div class="sc-card-body">
                 <div class="sc-metric-row">
                   <span class="lbl"><i class="fa-solid fa-triangle-exclamation"></i>Failure Rate</span>
@@ -163,10 +231,26 @@ async function updateEventsFeed() {
         const feed   = document.getElementById('events-feed');
         if (!feed) return;
 
-        // Filter out scan_complete clutter (keep injection events only)
-        const visible = events.filter(e => e.event !== 'scan_complete');
+        // Filter out idle scan_complete events (keep scans with actions + all other events)
+        const visible = events.filter(e =>
+            e.event !== 'scan_complete' || (e.details?.actions_taken ?? 0) > 0
+        );
 
-        if (!visible.length) return; // keep placeholder
+        if (!visible.length) {
+            // Show latest scan info instead of static placeholder
+            const latest = events[events.length - 1];
+            if (latest?.details?.scan_number) {
+                feed.innerHTML = `<div class="event-row" style="opacity:.6">
+                    <div class="ev-icon" style="background:#6b728020;color:#6b7280"><i class="fa-solid fa-radar"></i></div>
+                    <div class="ev-body">
+                        <div class="ev-title"><span class="ev-label" style="color:#6b7280">Scanning</span></div>
+                        <div class="ev-detail">Scan #${latest.details.scan_number} — ${latest.details.services_scanned} service(s) monitored, no issues detected</div>
+                    </div>
+                    <div class="ev-time">${new Date(latest.timestamp * 1000).toLocaleTimeString()}</div>
+                </div>`;
+            }
+            return;
+        }
 
         // Render newest first
         const reversed = [...visible].reverse();
@@ -207,6 +291,6 @@ updateDashboard();
 updateAgentStatus();
 updateEventsFeed();
 
-setInterval(updateDashboard,    2000);
-setInterval(updateAgentStatus,  3000);
-setInterval(updateEventsFeed,   3000);
+setInterval(updateDashboard,   1500);  // fast — mirrors agent 2s scan
+setInterval(updateAgentStatus, 2000);
+setInterval(updateEventsFeed,  2000);

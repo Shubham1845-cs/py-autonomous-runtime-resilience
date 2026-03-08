@@ -26,44 +26,57 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'autoheal-secret-key-2024'
 
 # ─── Framework instances ────────────────────────────────────────────────────
-detector = create_detector(_monitor)
+detector = create_detector(_monitor,
+    critical_failure_threshold = 30.0,   # CRITICAL at 30%+ failures
+    degraded_failure_threshold = 10.0,   # DEGRADED at 10%+ failures
+)
 injector = PatternInjector()
 agent    = AutoHealAgent(
     monitor   = _monitor,
     detector  = detector,
     injector  = injector,
-    scan_interval_seconds = 5.0,
-    grace_period_seconds  = 120,   # shorter grace for demo
+    scan_interval_seconds = 2.0,   # scan every 2s for fast demo response
+    grace_period_seconds  = 30,    # remove pattern 30s after recovery
 )
 
 # Start the autonomous agent in background when the Flask dev server starts
 # (use 'before_first_request' pattern for production; here we start directly)
 agent.start()
 
-# ─── Demo Traffic Seeder ─────────────────────────────────────────────────────
-# Simulates realistic HTTP traffic so the dashboard has live data without Saleor.
-# Injects calls directly into _monitor (bypasses real network).
-import threading, random, time as _time
+# ─── Saleor Live Traffic Generator ───────────────────────────────────────────
+# Sends real GraphQL requests to Saleor through the fault proxy.
+# Because install_monitor() was called above, these requests are automatically
+# tracked by _monitor, which allows the agent to detect faults and self-heal.
+import threading, random, time as _time, requests as _requests
 
-_DEMO_SERVICES = {
-    "payment-gateway": {"base_latency": 0.2, "fail_rate": 0.05},
-    "inventory-service": {"base_latency": 0.1, "fail_rate": 0.02},
-    "shipping-api":      {"base_latency": 0.35, "fail_rate": 0.08},
-    "auth-service":      {"base_latency": 0.05, "fail_rate": 0.01},
-}
+SALEOR_PROXY_URL = "http://localhost:8001/graphql/"
+SALEOR_TARGET_URL = "http://localhost:8000/graphql/"
 
-def _seed_demo_traffic():
+_SALEOR_QUERIES = [
+    '{ shop { name } }',
+    '{ products(first: 5, channel: "default-channel") { edges { node { name } } } }',
+    '{ categories(first: 5) { edges { node { name } } } }',
+]
+
+def _saleor_traffic_loop():
+    """Send real traffic to Saleor through the fault proxy."""
+    _time.sleep(3)  # wait for Flask to start
+    print("[TrafficGen] Starting live Saleor traffic through fault proxy...")
     while True:
-        for svc, cfg in _DEMO_SERVICES.items():
-            latency    = cfg["base_latency"] + random.uniform(-0.05, 0.2)
-            is_failure = random.random() < cfg["fail_rate"]
-            status     = random.choice([500, 503, 429]) if is_failure else 200
-            error      = "connection refused" if status in (503, 500) else None
-            _monitor.track_call(svc, max(0.01, latency), status, error)
-        _time.sleep(1.5)
+        query = random.choice(_SALEOR_QUERIES)
+        try:
+            _requests.post(
+                SALEOR_PROXY_URL,
+                json={"query": query},
+                headers={"X-Target-URL": SALEOR_TARGET_URL},
+                timeout=15,
+            )
+        except Exception:
+            pass  # monitor tracks the failure automatically
+        _time.sleep(1.0)
 
-_seeder = threading.Thread(target=_seed_demo_traffic, daemon=True, name="demo-seeder")
-_seeder.start()
+_traffic_thread = threading.Thread(target=_saleor_traffic_loop, daemon=True, name="saleor-traffic")
+_traffic_thread.start()
 
 
 
@@ -100,9 +113,14 @@ def api_services():
     """All monitored services with health summaries."""
     services  = get_all_services()
     summaries = [get_health_summary(s) for s in services]
-    # annotate active patterns
+    # annotate active patterns with full details
     for s in summaries:
         s['active_pattern'] = injector.get_pattern_type(s['service'])
+        active_record = injector.get_active(s['service'])
+        if active_record:
+            s['pattern_details'] = active_record.to_dict()
+        else:
+            s['pattern_details'] = None
     return jsonify(summaries)
 
 @app.route('/api/service/<service_name>')
@@ -178,6 +196,19 @@ def api_agent_events():
 def api_injector_summary():
     """Current injector state: active injections + full history."""
     return jsonify(injector.summary())
+
+@app.route('/api/reset-demo', methods=['POST'])
+def api_reset_demo():
+    """Remove all active pattern injections for a clean demo phase.
+    NOTE: we do NOT clear metrics so the service card stays visible on the dashboard.
+    The short 15s analysis window means fresh chaos data will dominate within one scan cycle."""
+    active = injector.get_all_active()
+    for record in active:
+        try:
+            injector.remove(record.service_name)
+        except Exception:
+            pass
+    return jsonify({"status": "reset", "cleared": len(active), "message": "Patterns removed — metrics preserved"})
 
 # ─── API: Patterns info ─────────────────────────────────────────────────────
 

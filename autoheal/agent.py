@@ -259,6 +259,24 @@ class AutoHealAgent:
         if decisions:
             logger.info("[Agent] Scan #%d: took %d action(s) across %d services.",
                         self._scan_count, len(decisions), len(services))
+        
+        # ── Loud terminal output for demo visibility ──
+        if self._scan_count % 5 == 0 or decisions:
+            healthy = sum(1 for s in services if not self.injector.has_pattern(s))
+            protected = sum(1 for s in services if self.injector.has_pattern(s))
+            print(f"\n{'='*60}")
+            print(f"  [AutoHeal] Scan #{self._scan_count}  |  {len(services)} service(s)")
+            print(f"  ✅ Healthy: {healthy}  |  🛡️  Protected: {protected}")
+            if decisions:
+                for d in decisions:
+                    if d['action'] == 'injected':
+                        print(f"  🚨 ACTION: Injected [{d['pattern'].upper()}] on '{d['service']}'")
+                        print(f"     Reason: {d.get('reason', 'N/A')}")
+                    elif d['action'] == 'removed':
+                        print(f"  ✅ ACTION: Removed [{d['pattern'].upper()}] from '{d['service']}' — RECOVERED!")
+            else:
+                print(f"  📊 No actions needed — system stable")
+            print(f"{'='*60}\n")
 
     def _evaluate_service(self, service_name: str) -> Optional[Dict]:
         """
@@ -278,6 +296,10 @@ class AutoHealAgent:
                 ))
                 logger.info("[Agent] ✅ Removed '%s' from '%s' — service recovered.",
                             pattern_type, service_name)
+                print(f"\n{'*'*60}")
+                print(f"  ✅ HEALED! Service '{service_name}' recovered.")
+                print(f"  Removed pattern: {pattern_type.upper()}")
+                print(f"{'*'*60}\n")
                 return {"action": "removed", "service": service_name, "pattern": pattern_type}
             return None  # already protected, not yet healthy enough to remove
 
@@ -330,6 +352,12 @@ class AutoHealAgent:
             "[Agent] 🛡️  Injected '%s' on '%s' | Reason: %s",
             pattern_type, service_name, reason
         )
+        print(f"\n{'!'*60}")
+        print(f"  🚨 FAILURE DETECTED on '{service_name}'")
+        print(f"  Health State: {health_state.upper()}")
+        print(f"  🛡️  INJECTING PATTERN: {pattern_type.upper()}")
+        print(f"  Reason: {reason}")
+        print(f"{'!'*60}\n")
         return {"action": "injected", "service": service_name,
                 "pattern": pattern_type, "reason": reason}
 

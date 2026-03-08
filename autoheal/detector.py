@@ -108,7 +108,7 @@ class HealthDetector:
         else:
             return HealthState.HEALTHY
     
-    def recommend_pattern(self, service_name: str, window_seconds: int = 60) -> Optional[Dict]:
+    def recommend_pattern(self, service_name: str, window_seconds: int = 15) -> Optional[Dict]:
         """
         Recommend a resilience pattern based on failure analysis.
         
