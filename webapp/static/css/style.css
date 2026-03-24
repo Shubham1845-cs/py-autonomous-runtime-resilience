@@ -2448,3 +2448,234 @@ body {
     border-radius: 50%;
     flex-shrink: 0;
 }
+
+/* =====================================================
+   CHAOS CONTROL PANEL
+   ===================================================== */
+.chaos-panel {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--glass);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+    transition: border-color .3s, box-shadow .3s;
+}
+
+/* Active chaos glow border */
+.chaos-panel.chaos-active {
+    border-color: var(--chaos-color, var(--border2));
+    box-shadow: 0 0 30px rgba(var(--chaos-rgb, 239 68 68) / .18), 0 0 0 1px rgba(var(--chaos-rgb, 239 68 68) / .12);
+}
+
+/* Scanning stripe animation when active */
+.chaos-panel.chaos-active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 20px,
+        rgba(var(--chaos-rgb, 239 68 68) / .03) 20px,
+        rgba(var(--chaos-rgb, 239 68 68) / .03) 40px
+    );
+    animation: chaosStripe 4s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes chaosStripe {
+    from { background-position: 0 0; }
+    to   { background-position: 80px 0; }
+}
+
+/* ── Status indicator (left) ── */
+.chaos-status-block {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    flex-shrink: 0;
+    min-width: 210px;
+}
+
+.chaos-indicator {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.chaos-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--chaos-color, #10b981);
+    opacity: 0;
+    transition: opacity .4s;
+}
+
+.chaos-panel.chaos-active .chaos-ring {
+    opacity: 1;
+    animation: chaosRingPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes chaosRingPulse {
+    0%   { transform: scale(.85); opacity: .9; }
+    50%  { transform: scale(1.15); opacity: .3; }
+    100% { transform: scale(.85); opacity: .9; }
+}
+
+.chaos-state-icon {
+    font-size: 1.6rem;
+    color: #10b981;
+    transition: color .3s, text-shadow .3s;
+    position: relative;
+    z-index: 1;
+}
+
+.chaos-panel.chaos-active .chaos-state-icon {
+    color: var(--chaos-color, #ef4444);
+    text-shadow: 0 0 16px var(--chaos-color, #ef4444);
+    animation: chaosIconFade 2s ease-in-out infinite alternate;
+}
+
+@keyframes chaosIconFade {
+    from { opacity: .7; }
+    to   { opacity: 1; }
+}
+
+.chaos-status-text {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.chaos-mode-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text);
+    transition: color .3s;
+}
+
+.chaos-panel.chaos-active .chaos-mode-label {
+    color: var(--chaos-color, #ef4444);
+}
+
+.chaos-mode-sub {
+    font-size: .78rem;
+    color: var(--muted);
+}
+
+/* ── Divider ── */
+.chaos-divider {
+    width: 1px;
+    height: 56px;
+    background: var(--border2);
+    margin: 0 2rem;
+    flex-shrink: 0;
+}
+
+/* ── Fault buttons (right) ── */
+.chaos-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+    flex: 1;
+    align-items: center;
+}
+
+.chaos-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .55rem 1.05rem;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    font-size: .825rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    background: var(--glass);
+    color: var(--text);
+    position: relative;
+    overflow: hidden;
+}
+
+.chaos-btn kbd {
+    font-size: .65rem;
+    font-family: 'Space Grotesk', monospace;
+    background: rgba(0,0,0,.25);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 4px;
+    padding: .1rem .35rem;
+    color: inherit;
+    opacity: .8;
+    margin-left: .2rem;
+}
+
+.chaos-btn:hover { transform: translateY(-2px); }
+
+/* Red — Error Storm */
+.chaos-btn-red {
+    border-color: rgba(239,68,68,.35);
+    color: #f87171;
+    background: rgba(239,68,68,.08);
+}
+.chaos-btn-red:hover  { background: rgba(239,68,68,.18); box-shadow: 0 4px 18px rgba(239,68,68,.3); }
+.chaos-btn-red.active { background: rgba(239,68,68,.22); border-color: #ef4444; box-shadow: 0 0 18px rgba(239,68,68,.45); }
+
+/* Amber — Latency Spike */
+.chaos-btn-amber {
+    border-color: rgba(245,158,11,.35);
+    color: #fbbf24;
+    background: rgba(245,158,11,.08);
+}
+.chaos-btn-amber:hover  { background: rgba(245,158,11,.18); box-shadow: 0 4px 18px rgba(245,158,11,.3); }
+.chaos-btn-amber.active { background: rgba(245,158,11,.22); border-color: #f59e0b; box-shadow: 0 0 18px rgba(245,158,11,.45); }
+
+/* Purple — Connection Drop */
+.chaos-btn-purple {
+    border-color: rgba(168,85,247,.35);
+    color: #c084fc;
+    background: rgba(168,85,247,.08);
+}
+.chaos-btn-purple:hover  { background: rgba(168,85,247,.18); box-shadow: 0 4px 18px rgba(168,85,247,.3); }
+.chaos-btn-purple.active { background: rgba(168,85,247,.22); border-color: #a855f7; box-shadow: 0 0 18px rgba(168,85,247,.45); }
+
+/* Blue — Partial Outage */
+.chaos-btn-blue {
+    border-color: rgba(59,130,246,.35);
+    color: #60a5fa;
+    background: rgba(59,130,246,.08);
+}
+.chaos-btn-blue:hover  { background: rgba(59,130,246,.18); box-shadow: 0 4px 18px rgba(59,130,246,.3); }
+.chaos-btn-blue.active { background: rgba(59,130,246,.22); border-color: #3b82f6; box-shadow: 0 0 18px rgba(59,130,246,.45); }
+
+/* Clear / Restore Normal */
+.chaos-btn-clear {
+    border-color: rgba(16,232,150,.3);
+    color: #10e896;
+    background: rgba(16,232,150,.06);
+    margin-left: auto;
+}
+.chaos-btn-clear:hover { background: rgba(16,232,150,.15); box-shadow: 0 4px 18px rgba(16,232,150,.25); }
+
+/* Responsive collapse */
+@media (max-width: 900px) {
+    .chaos-panel {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.25rem;
+    }
+    .chaos-divider { width: 100%; height: 1px; margin: 0; }
+    .chaos-btn-clear { margin-left: 0; }
+}

@@ -301,7 +301,52 @@ class AutoHealAgent:
                 print(f"  Removed pattern: {pattern_type.upper()}")
                 print(f"{'*'*60}\n")
                 return {"action": "removed", "service": service_name, "pattern": pattern_type}
-            return None  # already protected, not yet healthy enough to remove
+            
+            # ── Check if pattern needs to be UPGRADED (e.g., RETRY → CIRCUIT BREAKER)
+            current_pattern = self.injector.get_pattern_type(service_name)
+            should_inject, recommendation = self.detector.should_inject_pattern(service_name)
+            
+            if should_inject and recommendation:
+                recommended_pattern = recommendation["pattern"]
+                # If recommended pattern is different, upgrade it
+                if recommended_pattern != current_pattern:
+                    logger.info("[Agent] ⬆️  Upgrading pattern on '%s': %s → %s",
+                                service_name, current_pattern, recommended_pattern)
+                    print(f"\n{'⬆'*60}")
+                    print(f"  ⬆️  ESCALATION on '{service_name}'")
+                    print(f"  Upgrading: {current_pattern.upper()} → {recommended_pattern.upper()}")
+                    print(f"  Reason: {recommendation['reason']}")
+                    print(f"{'⬆'*60}\n")
+                    
+                    # Remove old pattern and inject new one
+                    self.injector.remove(service_name)
+                    self.injector.inject(
+                        service_name = service_name,
+                        func         = lambda *a, **kw: None,
+                        pattern_type = recommended_pattern,
+                        config       = recommendation["config"],
+                    )
+                    
+                    with self._meta_lock:
+                        meta = self._service_meta.setdefault(service_name, {})
+                        meta["last_injection"]  = time.time()
+                        meta["injection_count"] = meta.get("injection_count", 0) + 1
+                    
+                    self._emit(AgentEvent(
+                        AgentEvent.PATTERN_INJECTED, service_name,
+                        {
+                            "pattern":      recommended_pattern,
+                            "reason":       f"Upgraded from {current_pattern}: {recommendation['reason']}",
+                            "health_state": recommendation["health_state"],
+                            "config":       recommendation["config"],
+                        }
+                    ))
+                    
+                    return {"action": "upgraded", "service": service_name,
+                            "from_pattern": current_pattern, "to_pattern": recommended_pattern,
+                            "reason": recommendation["reason"]}
+            
+            return None  # already protected with correct pattern
 
         # ── Check if pattern injection needed
         should_inject, recommendation = self.detector.should_inject_pattern(service_name)

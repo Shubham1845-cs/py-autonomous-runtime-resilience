@@ -74,7 +74,7 @@ class FaultProxyHandler(http.server.BaseHTTPRequestHandler):
                 print(f"[FaultProxy] Injecting {applied_fault['delay']}s delay for {service_name}")
                 time.sleep(applied_fault["delay"])
             
-            if "status" in applied_fault:
+            if "status" in applied_fault and applied_fault["status"] > 0:
                 print(f"[FaultProxy] Injecting Error {applied_fault['status']} for {service_name}")
                 self.send_response(applied_fault["status"])
                 self.end_headers()

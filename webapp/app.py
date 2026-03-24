@@ -2,6 +2,8 @@ from flask import Flask, render_template, jsonify, request
 import sys
 import os
 import logging
+import threading
+import time as _time_mod
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,6 +17,60 @@ from autoheal.agent import AutoHealAgent
 install_monitor()
 
 
+# ─── Chaos State ─────────────────────────────────────────────────────────────
+class ChaosState:
+    """Thread-safe singleton tracking the active fault injection mode."""
+    _MODES = {
+        "none":             {"label": "No Fault",          "icon": "fa-circle-check",      "color": "#10b981"},
+        "error_storm":      {"label": "Error Storm",        "icon": "fa-bolt",              "color": "#ef4444"},
+        "latency_spike":    {"label": "Latency Spike",      "icon": "fa-hourglass-half",    "color": "#f59e0b"},
+        "connection_drop":  {"label": "Connection Drop",    "icon": "fa-plug-circle-xmark", "color": "#a855f7"},
+        "partial_outage":   {"label": "Partial Outage (50%)","icon": "fa-cloud-bolt",      "color": "#3b82f6"},
+    }
+
+    def __init__(self):
+        self._lock   = threading.Lock()
+        self._mode:  str             = "none"
+        self._since: "float | None" = None
+
+    @property
+    def mode(self):
+        with self._lock:
+            return self._mode
+
+    def inject(self, mode: str):
+        if mode not in self._MODES:
+            raise ValueError(f"Unknown fault mode: {mode!r}")
+        with self._lock:
+            self._mode  = mode
+            self._since = _time_mod.time()
+
+    def clear(self):
+        with self._lock:
+            self._mode  = "none"
+            self._since = None
+
+    def status(self) -> dict:
+        with self._lock:
+            meta = self._MODES.get(self._mode, self._MODES["none"])
+            age  = round(_time_mod.time() - self._since) if isinstance(self._since, float) else 0
+            return {
+                "mode":     self._mode,
+                "active":   self._mode != "none",
+                "label":    meta["label"],
+                "icon":     meta["icon"],
+                "color":    meta["color"],
+                "age_seconds": age,
+                "modes":    {
+                    k: {"label": v["label"], "icon": v["icon"], "color": v["color"]}
+                    for k, v in self._MODES.items() if k != "none"
+                },
+            }
+
+
+_chaos = ChaosState()
+
+
 # ─── logging ───────────────────────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
@@ -26,9 +82,14 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'autoheal-secret-key-2024'
 
 # ─── Framework instances ────────────────────────────────────────────────────
+# Thresholds tuned for live_demo.py:
+#   Pattern 1: 50% errors  → DEGRADED (10-60%) → RETRY
+#   Pattern 2: 98% errors  → CRITICAL (60%+)   → CIRCUIT BREAKER
+#   Pattern 3: 8s latency  → SLOW (>3s)        → TIMEOUT
 detector = create_detector(_monitor,
-    critical_failure_threshold = 30.0,   # CRITICAL at 30%+ failures
-    degraded_failure_threshold = 10.0,   # DEGRADED at 10%+ failures
+    critical_failure_threshold = 60.0,   # CRITICAL at 60%+ failures (for Pattern 2)
+    degraded_failure_threshold = 10.0,   # DEGRADED at 10%+ failures (for Pattern 1)
+    slow_latency_threshold     = 3.0,    # SLOW at 3s+ latency (for Pattern 3)
 )
 injector = PatternInjector()
 agent    = AutoHealAgent(
@@ -59,21 +120,42 @@ _SALEOR_QUERIES = [
 ]
 
 def _saleor_traffic_loop():
-    """Send real traffic to Saleor through the fault proxy."""
+    """Send real traffic to Saleor through the fault proxy.
+    
+    Applies chaos faults BEFORE the request so the monitor tracks real failures:
+      • error_storm      → force HTTP 503 by pointing at an unreachable port
+      • latency_spike    → sleep 4-8s before sending (triggers timeout detection)
+      • connection_drop  → raise a ConnectionError (tracked as error by monitor)
+      • partial_outage   → 50 % chance of connection error
+    """
     _time.sleep(3)  # wait for Flask to start
     print("[TrafficGen] Starting live Saleor traffic through fault proxy...")
     while True:
+        mode  = _chaos.mode
         query = random.choice(_SALEOR_QUERIES)
         try:
+            # ── Apply pre-request chaos ──────────────────────────────────
+            if mode == "latency_spike":
+                _time.sleep(random.uniform(4.0, 8.0))  # artificial delay
+
+            if mode == "connection_drop":
+                raise _requests.exceptions.ConnectionError("[chaos] connection forcibly dropped")
+
+            if mode == "partial_outage" and random.random() < 0.55:
+                raise _requests.exceptions.ConnectionError("[chaos] partial outage")
+
+            # Use a dead port for error_storm so the TCP connect fails fast
+            target_url = SALEOR_PROXY_URL if mode != "error_storm" else "http://localhost:19998/graphql/"
+
             _requests.post(
-                SALEOR_PROXY_URL,
+                target_url,
                 json={"query": query},
                 headers={"X-Target-URL": SALEOR_TARGET_URL},
-                timeout=15,
+                timeout=10,
             )
         except Exception:
             pass  # monitor tracks the failure automatically
-        _time.sleep(1.0)
+        _time.sleep(0.8)
 
 _traffic_thread = threading.Thread(target=_saleor_traffic_loop, daemon=True, name="saleor-traffic")
 _traffic_thread.start()
@@ -209,6 +291,33 @@ def api_reset_demo():
         except Exception:
             pass
     return jsonify({"status": "reset", "cleared": len(active), "message": "Patterns removed — metrics preserved"})
+
+
+# ─── API: Chaos Control ──────────────────────────────────────────────────────
+
+@app.route('/api/chaos', methods=['GET'])
+def api_chaos_status():
+    """Return current chaos fault injection status."""
+    return jsonify(_chaos.status())
+
+
+@app.route('/api/chaos', methods=['POST'])
+def api_chaos_inject():
+    """Activate a fault mode: POST {"mode": "error_storm"}"""
+    body = request.get_json(force=True, silent=True) or {}
+    mode = body.get("mode", "")
+    try:
+        _chaos.inject(mode)
+        return jsonify({"ok": True, "mode": mode, "message": f"Fault '{mode}' injected — agent will respond shortly"})
+    except ValueError as exc:
+        return jsonify({"ok": False, "error": str(exc)}), 400
+
+
+@app.route('/api/chaos', methods=['DELETE'])
+def api_chaos_clear():
+    """Clear all active fault injection."""
+    _chaos.clear()
+    return jsonify({"ok": True, "message": "Chaos cleared — service returning to normal"})
 
 # ─── API: Patterns info ─────────────────────────────────────────────────────
 

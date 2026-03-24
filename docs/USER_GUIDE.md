@@ -2,6 +2,8 @@
 
 Welcome to AutoHeal-Py, the autonomous self-healing framework for Python microservices.
 
+For the full step-by-step project execution flow, start with docs/WORKFLOW.md.
+
 ## 🚀 Quick Start
 
 ### 1. Installation

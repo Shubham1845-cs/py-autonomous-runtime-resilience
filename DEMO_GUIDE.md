@@ -2,11 +2,14 @@
 
 This guide walks you through a live demonstration of the AutoHeal-Py "Zero-Touch" self-healing capabilities using the Saleor E-commerce sandbox.
 
+Canonical onboarding lives in docs/WORKFLOW.md. This file focuses on the presentation-style demo sequence.
+
 ## 🏁 Prerequisites
 
 Ensure you have the following processes running:
-1.  **Fault Proxy**: `python saleor_sandbox/fault_proxy.py` (Port 8000)
-2.  **AutoHeal Dashboard**: `python webapp/app.py` (Port 5000)
+1.  **Fault Proxy**: `python saleor_sandbox/fault_proxy.py` (Port 8001)
+2.  **Sidecar + Agent + Traffic**: `python saleor_sandbox/runner.py`
+3.  **AutoHeal Dashboard**: `python webapp/app.py` (Port 5000)
 
 ## 🎭 The Scenario
 
@@ -21,22 +24,22 @@ We are simulates a production environment where:
 3.  **Check Terminal**: The runner script shows successful 200 responses.
 
 ## 🎬 Act 2: Injecting Transient Failures (Retry)
-1.  **Inject Chaos**: Run `python saleor_sandbox/chaos_control.py --status 503 --rate 0.4`
+1.  **Inject Chaos**: Run `python saleor_sandbox/chaos_control.py localhost:8000 status 503 0.4`
     -   *This injects a 40% failure rate (503 Service Unavailable).*
 2.  **Watch the Agent**: Within 10-15 seconds, the Dashboard event feed will show:
     -   `[Agent] 🛡️ Injected 'retry' on 'saleor-api' | Reason: High failure rate (transient)`
 3.  **The Result**: The `runner.py` terminal will show fewer errors because the Retry pattern is masking them!
 
 ## 🎬 Act 3: Injecting Critical Failures (Circuit Breaker)
-1.  **Increase Chaos**: Run `python saleor_sandbox/chaos_control.py --status 500 --rate 0.7`
+1.  **Increase Chaos**: Run `python saleor_sandbox/chaos_control.py localhost:8000 status 500 0.7`
     -   *This injects a 70% failure rate (500 Internal Server Error).*
 2.  **Watch the Agent**: The agent detects a **CRITICAL** state.
     -   `[Agent] 🛡️ Injected 'circuit_breaker' on 'saleor-api'`
 3.  **The Result**: The Dashboard card for `saleor-api` will turn **RED**. Interaction stops to prevent system-wide collapse.
 
 ## 🎬 Act 4: Autonomous Recovery
-1.  **Fix the Service**: Run `python saleor_sandbox/chaos_control.py --clear`
-2.  **Wait for Grace Period**: In 30-60 seconds (scaled for demo), the agent will notice the service is healthy.
+1.  **Fix the Service**: Restart the fault proxy terminal to clear injected fault config.
+2.  **Wait for Grace Period**: In about 30-60 seconds (scaled for demo), the agent will notice the service is healthy.
 3.  **Observation**: 
     -   `[Agent] ✅ Removed 'circuit_breaker' from 'saleor-api' — service recovered.`
     -   The Dashboard card turns **GREEN** again.

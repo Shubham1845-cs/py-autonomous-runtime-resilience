@@ -178,14 +178,31 @@ class HealthDetector:
         """
         Select appropriate resilience pattern based on failure signature.
         
+        Priority order (for live_demo.py):
+        1. Check latency first (Pattern 3: 8s delay → Timeout) - ABSOLUTE PRIORITY
+        2. Check CRITICAL failure rate (Pattern 2: 98% → Circuit Breaker)
+        3. Check moderate 503 errors (Pattern 1: 50% 503s → Retry)
+        
         Returns:
             (pattern, reason, config)
         """
-        # High failure rate → Circuit Breaker
+        # High latency → Timeout (ABSOLUTE PRIORITY - check first and return immediately)
+        # This ensures Pattern 3 always triggers TIMEOUT, even if there are also errors
+        if avg_latency > self.slow_threshold:
+            return (
+                ResiliencePattern.TIMEOUT,
+                f"High average latency ({avg_latency:.2f}s > {self.slow_threshold}s)",
+                {
+                    "max_seconds": min(avg_latency * 0.5, 5.0)  # 50% of current latency, max 5s
+                }
+            )
+        
+        # CRITICAL failure rate → Circuit Breaker (Pattern 2: 98% errors)
+        # Only checked if latency is NOT high
         if failure_rate >= self.critical_threshold:
             return (
                 ResiliencePattern.CIRCUIT_BREAKER,
-                f"High failure rate ({failure_rate}% >= {self.critical_threshold}%)",
+                f"Critical failure rate ({failure_rate}% >= {self.critical_threshold}%) — service is down",
                 {
                     "failure_threshold": 5,
                     "timeout_seconds": 30,
@@ -193,7 +210,8 @@ class HealthDetector:
                 }
             )
         
-        # Many 503 errors (service overload) → Retry
+        # Many 503 errors but NOT critical → Retry (Pattern 1: 50% 503s)
+        # Only checked if latency is NOT high and failure rate is NOT critical
         if error_analysis["error_503_rate"] > 30:
             return (
                 ResiliencePattern.RETRY,
@@ -203,16 +221,6 @@ class HealthDetector:
                     "backoff_base": 2,
                     "max_delay": 10,
                     "jitter": True
-                }
-            )
-        
-        # High latency → Timeout
-        if avg_latency > self.slow_threshold:
-            return (
-                ResiliencePattern.TIMEOUT,
-                f"High average latency ({avg_latency:.2f}s > {self.slow_threshold}s)",
-                {
-                    "max_seconds": min(avg_latency * 0.5, 5.0)  # 50% of current latency, max 5s
                 }
             )
         

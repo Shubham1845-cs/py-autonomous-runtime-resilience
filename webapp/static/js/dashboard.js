@@ -286,7 +286,7 @@ async function updateEventsFeed() {
     } catch (_) { /* silently skip */ }
 }
 
-// ── POLL INTERVALS ────────────────────────────────────────────────────────
+// Initial calls
 updateDashboard();
 updateAgentStatus();
 updateEventsFeed();
@@ -294,3 +294,148 @@ updateEventsFeed();
 setInterval(updateDashboard,   1500);  // fast — mirrors agent 2s scan
 setInterval(updateAgentStatus, 2000);
 setInterval(updateEventsFeed,  2000);
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHAOS CONTROL PANEL
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Map mode → CSS hex colour */
+const CHAOS_COLORS = {
+    error_storm:     '#ef4444',
+    latency_spike:   '#f59e0b',
+    connection_drop: '#a855f7',
+    partial_outage:  '#3b82f6',
+};
+
+/** Map mode → FA icon class */
+const CHAOS_ICONS = {
+    error_storm:     'fa-bolt',
+    latency_spike:   'fa-hourglass-half',
+    connection_drop: 'fa-plug-circle-xmark',
+    partial_outage:  'fa-cloud-bolt',
+};
+
+/** Map mode → button element id */
+const CHAOS_BTN_IDS = {
+    error_storm:     'btn-error-storm',
+    latency_spike:   'btn-latency-spike',
+    connection_drop: 'btn-connection-drop',
+    partial_outage:  'btn-partial-outage',
+};
+
+/** Convert a CSS hex like #ef4444 → "239 68 68" for use in rgba(). */
+function hexToRgbSpace(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `${r} ${g} ${b}`;
+}
+
+/**
+ * Render the chaos panel from an API status object.
+ * @param {Object} status - response from GET /api/chaos
+ */
+function applyChaosStatus(status) {
+    const panel  = document.getElementById('chaos-panel');
+    const ring   = document.getElementById('chaos-ring');
+    const icon   = document.getElementById('chaos-state-icon');
+    const label  = document.getElementById('chaos-mode-label');
+    const sub    = document.getElementById('chaos-mode-sub');
+    if (!panel) return;
+
+    const mode   = status.mode;
+    const active = status.active;
+    const color  = active ? (CHAOS_COLORS[mode] || '#ef4444') : '#10b981';
+    const rgb    = hexToRgbSpace(color);
+
+    // Toggle active class on panel
+    panel.classList.toggle('chaos-active', active);
+
+    // Update CSS custom properties so the ring/stripe pick up the right colour
+    panel.style.setProperty('--chaos-color', color);
+    panel.style.setProperty('--chaos-rgb',   rgb);
+    ring.style.borderColor = color;
+
+    // Update icon
+    const iconClass = active ? (CHAOS_ICONS[mode] || 'fa-biohazard') : 'fa-circle-check';
+    icon.className = `fa-solid ${iconClass} chaos-state-icon`;
+
+    // Update status text
+    label.textContent = active ? status.label : 'No Fault Active';
+    sub.textContent   = active
+        ? `Active for ${status.age_seconds}s — AutoHeal agent is watching`
+        : 'System is nominal';
+
+    // Highlight active button, unhighlight others
+    Object.entries(CHAOS_BTN_IDS).forEach(([m, btnId]) => {
+        const btn = document.getElementById(btnId);
+        if (btn) btn.classList.toggle('active', active && m === mode);
+    });
+}
+
+/** Toggle the `chaos-active` class instantly for immediate feedback before the poll. */
+function _optimisticUpdate(mode) {
+    const color = CHAOS_COLORS[mode] || '#ef4444';
+    const panel = document.getElementById('chaos-panel');
+    if (panel) {
+        panel.classList.add('chaos-active');
+        panel.style.setProperty('--chaos-color', color);
+        panel.style.setProperty('--chaos-rgb',   hexToRgbSpace(color));
+    }
+    const icon = document.getElementById('chaos-state-icon');
+    if (icon) icon.className = `fa-solid ${CHAOS_ICONS[mode] || 'fa-biohazard'} chaos-state-icon`;
+}
+
+/**
+ * Inject a fault mode via POST /api/chaos.
+ * @param {string} mode - one of the valid chaos mode strings
+ */
+async function injectChaos(mode) {
+    // Optimistic visual update before the request returns
+    _optimisticUpdate(mode);
+
+    try {
+        const res  = await fetch('/api/chaos', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({ mode }),
+        });
+        const data = await res.json();
+        if (!data.ok) console.warn('[Chaos] inject failed:', data.error);
+
+        // Sync authoritative state
+        await updateChaosPanel();
+    } catch (err) {
+        console.error('[Chaos] network error:', err);
+    }
+}
+
+/**
+ * Clear all active faults via DELETE /api/chaos.
+ */
+async function clearChaos() {
+    const panel = document.getElementById('chaos-panel');
+    if (panel) panel.classList.remove('chaos-active');
+
+    try {
+        await fetch('/api/chaos', { method: 'DELETE' });
+        await updateChaosPanel();
+    } catch (err) {
+        console.error('[Chaos] clear error:', err);
+    }
+}
+
+/**
+ * Poll /api/chaos and refresh the UI.
+ */
+async function updateChaosPanel() {
+    try {
+        const res    = await fetch('/api/chaos');
+        const status = await res.json();
+        applyChaosStatus(status);
+    } catch (_) { /* silently skip */ }
+}
+
+// Initial load + 2-second polling
+updateChaosPanel();
+setInterval(updateChaosPanel, 2000);

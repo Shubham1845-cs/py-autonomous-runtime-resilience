@@ -43,11 +43,13 @@ def inject_errors(rate, code=503):
     print(f"  🔥 Fault proxy: {int(rate*100)}% requests → HTTP {code}")
 
 def inject_delay(delay_seconds, rate=1.0):
-    api_post(PROXY_CTRL, {"localhost:8000": {"delay": delay_seconds, "rate": rate}})
-    print(f"  🔥 Fault proxy: {delay_seconds}s delay on ALL requests")
+    # Clear any previous error injection and set only delay
+    # Don't include 'status' field at all to avoid error injection
+    api_post(PROXY_CTRL, {"localhost:8000": {"delay": delay_seconds, "rate": 1.0}})
+    print(f"  🔥 Fault proxy: {delay_seconds}s delay on ALL requests (errors cleared)")
 
 def clear_chaos():
-    api_post(PROXY_CTRL, {"localhost:8000": {"rate": 0, "delay": 0}})
+    api_post(PROXY_CTRL, {"localhost:8000": {"rate": 0, "delay": 0, "status": 0}})
     print("  ✅ Fault proxy: faults cleared — normal traffic")
 
 def reset_demo():
@@ -168,8 +170,10 @@ if __name__ == "__main__":
     input("\n  [ENTER] → Inject 8-second latency")
 
     reset_demo()
+    clear_chaos()  # Explicitly clear all faults first
+    countdown(18, "Flushing old error metrics from 15s analysis window")
     inject_delay(8, rate=1.0)
-    countdown(15, "Waiting for agent to detect SLOW state and inject TIMEOUT GUARD")
+    countdown(30, "Waiting for agent to detect SLOW state and inject TIMEOUT GUARD")
     show_status("AFTER PATTERN 3 — Did TIMEOUT GUARD get injected?")
     print("  ✅ Expected: service SLOW → Pattern: TIMEOUT GUARD")
     print("  📊 Dashboard: Purple pulsing badge + 'Cuts off slow requests'")
