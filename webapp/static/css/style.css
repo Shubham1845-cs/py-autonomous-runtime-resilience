@@ -1902,18 +1902,38 @@ body {
    ACTIVE PATTERN BADGE (on service cards)
    ===================================================== */
 .active-pattern-badge {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: .5rem;
+    gap: .6rem;
     background: var(--pbg);
-    border: 1px solid color-mix(in srgb, var(--pc) 35%, transparent);
+    border: 2px solid var(--pc);
     color: var(--pc);
-    font-size: .75rem;
-    font-weight: 600;
-    padding: .3rem .85rem;
+    font-size: .95rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    padding: .5rem 1.2rem;
     border-radius: 999px;
-    margin: .5rem 0 .25rem 0;
-    animation: patternGlow 2s ease-in-out infinite;
+    margin: .6rem 0 .4rem 0;
+    animation: patternPulse 1.5s ease-in-out infinite;
+}
+
+.active-pattern-badge i {
+    font-size: 1.1rem;
+}
+
+@keyframes patternPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 4px color-mix(in srgb, var(--pc) 20%, transparent);
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow: 0 0 18px color-mix(in srgb, var(--pc) 60%, transparent),
+            0 0 40px color-mix(in srgb, var(--pc) 20%, transparent);
+        transform: scale(1.03);
+    }
 }
 
 @keyframes patternGlow {
@@ -1926,6 +1946,133 @@ body {
     50% {
         box-shadow: 0 0 12px color-mix(in srgb, var(--pc) 40%, transparent);
     }
+}
+
+/* =====================================================
+   PATTERN INFO PANEL (rich pattern explanation card)
+   ===================================================== */
+.pattern-info-panel {
+    background: var(--pbg);
+    border: 1px solid var(--pc);
+    border-radius: calc(var(--radius) - 4px);
+    padding: .85rem 1rem;
+    margin: .6rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    animation: patternPulse 2s ease-in-out infinite;
+}
+
+.pip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+
+.pip-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    background: var(--pc);
+    color: #000;
+    font-weight: 800;
+    font-size: .78rem;
+    letter-spacing: .07em;
+    padding: .25rem .75rem;
+    border-radius: 999px;
+}
+
+.pip-pattern-name {
+    font-weight: 700;
+    font-size: .88rem;
+    color: var(--pc);
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+.pip-row {
+    display: flex;
+    gap: .6rem;
+    font-size: .8rem;
+    line-height: 1.45;
+    flex-wrap: wrap;
+}
+
+.pip-field-label {
+    color: var(--pc);
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 7rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .3rem;
+    padding-top: .05rem;
+}
+
+.pip-field-val {
+    color: var(--fg);
+    opacity: .9;
+    flex: 1;
+}
+
+.pip-field-val code {
+    background: rgba(255, 255, 255, .08);
+    border-radius: 4px;
+    padding: .1rem .35rem;
+    font-size: .78rem;
+    color: var(--pc);
+}
+
+.pip-cfg-block {
+    background: rgba(0, 0, 0, .2);
+    border-radius: 6px;
+    padding: .5rem .75rem;
+    margin-top: .2rem;
+}
+
+.pip-cfg-title {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: .35rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.pi-cfg-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: .76rem;
+    padding: .15rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+
+.pi-cfg-row:last-child {
+    border-bottom: none;
+}
+
+.pi-cfg-key {
+    color: var(--muted);
+    text-transform: capitalize;
+}
+
+.pi-cfg-val {
+    color: var(--fg);
+    font-weight: 600;
+}
+
+.pip-age {
+    font-size: .72rem;
+    color: var(--muted);
+    text-align: right;
+    margin-top: .1rem;
+}
+
+.pip-age b {
+    color: var(--pc);
 }
 
 /* =====================================================
@@ -2064,3 +2211,471 @@ body {
     flex-shrink: 0;
     font-variant-numeric: tabular-nums;
 }
+
+/* =====================================================
+   MONITOR TABLE  — status badges
+   ===================================================== */
+.status-ok {
+    display: inline-block;
+    background: rgba(16, 232, 150, .12);
+    color: var(--green);
+    border-radius: 4px;
+    padding: .1rem .5rem;
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+.status-err {
+    display: inline-block;
+    background: rgba(242, 90, 90, .12);
+    color: var(--red);
+    border-radius: 4px;
+    padding: .1rem .5rem;
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+/* =====================================================
+   PATTERN PANEL SLOT — container with fade-in animation
+   ===================================================== */
+.pattern-panel-slot {
+    overflow: hidden;
+    transition: max-height .4s ease, opacity .3s ease;
+}
+
+.pattern-panel-slot:empty {
+    display: none;
+}
+
+/* Flash highlight on pattern change */
+.pattern-panel-slot.pip-flash .pattern-info-panel {
+    animation: patternPulse 2s ease-in-out infinite,
+        pipFlash .6s ease-out forwards;
+}
+
+@keyframes pipFlash {
+    0% {
+        box-shadow: 0 0 0 4px var(--pc), 0 0 40px var(--pc);
+        filter: brightness(1.6);
+    }
+
+    100% {
+        box-shadow: none;
+        filter: brightness(1);
+    }
+}
+
+/* =====================================================
+   PATTERN INFO PANEL (rich explanation card)
+   ===================================================== */
+.pattern-info-panel {
+    background: var(--pbg);
+    border: 1.5px solid var(--pc);
+    border-radius: calc(var(--radius) - 4px);
+    padding: .85rem 1rem;
+    margin: .6rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    animation: patternPulse 2s ease-in-out infinite;
+}
+
+.pip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+
+.pip-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    background: var(--pc);
+    color: #000;
+    font-weight: 800;
+    font-size: .78rem;
+    letter-spacing: .07em;
+    padding: .25rem .75rem;
+    border-radius: 999px;
+}
+
+.pip-pattern-name {
+    font-weight: 700;
+    font-size: .88rem;
+    color: var(--pc);
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+.pip-row {
+    display: flex;
+    gap: .6rem;
+    font-size: .8rem;
+    line-height: 1.45;
+    flex-wrap: wrap;
+}
+
+.pip-field-label {
+    color: var(--pc);
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 7rem;
+    display: flex;
+    align-items: flex-start;
+    gap: .3rem;
+    padding-top: .05rem;
+}
+
+.pip-field-val {
+    color: var(--fg);
+    opacity: .9;
+    flex: 1;
+}
+
+.pip-field-val code {
+    background: rgba(255, 255, 255, .08);
+    border-radius: 4px;
+    padding: .1rem .35rem;
+    font-size: .78rem;
+    color: var(--pc);
+}
+
+.pip-cfg-block {
+    background: rgba(0, 0, 0, .2);
+    border-radius: 6px;
+    padding: .5rem .75rem;
+    margin-top: .2rem;
+}
+
+.pip-cfg-title {
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin-bottom: .35rem;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.pi-cfg-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: .76rem;
+    padding: .15rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+
+.pi-cfg-row:last-child {
+    border-bottom: none;
+}
+
+.pi-cfg-key {
+    color: var(--muted);
+    text-transform: capitalize;
+}
+
+.pi-cfg-val {
+    color: var(--fg);
+    font-weight: 600;
+}
+
+.pip-age {
+    font-size: .72rem;
+    color: var(--muted);
+    text-align: right;
+    margin-top: .1rem;
+}
+
+.pip-age b {
+    color: var(--pc);
+}
+
+/* patternPulse — used by .pattern-info-panel */
+@keyframes patternPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 4px color-mix(in srgb, var(--pc) 20%, transparent);
+    }
+
+    50% {
+        box-shadow: 0 0 18px color-mix(in srgb, var(--pc) 60%, transparent),
+            0 0 40px color-mix(in srgb, var(--pc) 20%, transparent);
+    }
+}
+
+/* =====================================================
+   3D TOPOLOGY PANEL
+   ===================================================== */
+.topology-wrap {
+    position: relative;
+    width: 100%;
+    height: 340px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: radial-gradient(ellipse at center, #0d1526 0%, #090e1a 100%);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+#topology-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.topology-legend {
+    position: absolute;
+    bottom: 12px;
+    right: 16px;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-size: .72rem;
+    color: var(--muted);
+    background: rgba(0, 0, 0, .4);
+    padding: .3rem .75rem;
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+}
+
+.tl-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* =====================================================
+   CHAOS CONTROL PANEL
+   ===================================================== */
+.chaos-panel {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--glass);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+    transition: border-color .3s, box-shadow .3s;
+}
+
+/* Active chaos glow border */
+.chaos-panel.chaos-active {
+    border-color: var(--chaos-color, var(--border2));
+    box-shadow: 0 0 30px rgba(var(--chaos-rgb, 239 68 68) / .18), 0 0 0 1px rgba(var(--chaos-rgb, 239 68 68) / .12);
+}
+
+/* Scanning stripe animation when active */
+.chaos-panel.chaos-active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        -45deg,
+        transparent,
+        transparent 20px,
+        rgba(var(--chaos-rgb, 239 68 68) / .03) 20px,
+        rgba(var(--chaos-rgb, 239 68 68) / .03) 40px
+    );
+    animation: chaosStripe 4s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes chaosStripe {
+    from { background-position: 0 0; }
+    to   { background-position: 80px 0; }
+}
+
+/* ── Status indicator (left) ── */
+.chaos-status-block {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    flex-shrink: 0;
+    min-width: 210px;
+}
+
+.chaos-indicator {
+    position: relative;
+    width: 58px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.chaos-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--chaos-color, #10b981);
+    opacity: 0;
+    transition: opacity .4s;
+}
+
+.chaos-panel.chaos-active .chaos-ring {
+    opacity: 1;
+    animation: chaosRingPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes chaosRingPulse {
+    0%   { transform: scale(.85); opacity: .9; }
+    50%  { transform: scale(1.15); opacity: .3; }
+    100% { transform: scale(.85); opacity: .9; }
+}
+
+.chaos-state-icon {
+    font-size: 1.6rem;
+    color: #10b981;
+    transition: color .3s, text-shadow .3s;
+    position: relative;
+    z-index: 1;
+}
+
+.chaos-panel.chaos-active .chaos-state-icon {
+    color: var(--chaos-color, #ef4444);
+    text-shadow: 0 0 16px var(--chaos-color, #ef4444);
+    animation: chaosIconFade 2s ease-in-out infinite alternate;
+}
+
+@keyframes chaosIconFade {
+    from { opacity: .7; }
+    to   { opacity: 1; }
+}
+
+.chaos-status-text {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.chaos-mode-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text);
+    transition: color .3s;
+}
+
+.chaos-panel.chaos-active .chaos-mode-label {
+    color: var(--chaos-color, #ef4444);
+}
+
+.chaos-mode-sub {
+    font-size: .78rem;
+    color: var(--muted);
+}
+
+/* ── Divider ── */
+.chaos-divider {
+    width: 1px;
+    height: 56px;
+    background: var(--border2);
+    margin: 0 2rem;
+    flex-shrink: 0;
+}
+
+/* ── Fault buttons (right) ── */
+.chaos-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+    flex: 1;
+    align-items: center;
+}
+
+.chaos-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .55rem 1.05rem;
+    border-radius: 9px;
+    border: 1px solid transparent;
+    font-size: .825rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    background: var(--glass);
+    color: var(--text);
+    position: relative;
+    overflow: hidden;
+}
+
+.chaos-btn kbd {
+    font-size: .65rem;
+    font-family: 'Space Grotesk', monospace;
+    background: rgba(0,0,0,.25);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: 4px;
+    padding: .1rem .35rem;
+    color: inherit;
+    opacity: .8;
+    margin-left: .2rem;
+}
+
+.chaos-btn:hover { transform: translateY(-2px); }
+
+/* Red — Error Storm */
+.chaos-btn-red {
+    border-color: rgba(239,68,68,.35);
+    color: #f87171;
+    background: rgba(239,68,68,.08);
+}
+.chaos-btn-red:hover  { background: rgba(239,68,68,.18); box-shadow: 0 4px 18px rgba(239,68,68,.3); }
+.chaos-btn-red.active { background: rgba(239,68,68,.22); border-color: #ef4444; box-shadow: 0 0 18px rgba(239,68,68,.45); }
+
+/* Amber — Latency Spike */
+.chaos-btn-amber {
+    border-color: rgba(245,158,11,.35);
+    color: #fbbf24;
+    background: rgba(245,158,11,.08);
+}
+.chaos-btn-amber:hover  { background: rgba(245,158,11,.18); box-shadow: 0 4px 18px rgba(245,158,11,.3); }
+.chaos-btn-amber.active { background: rgba(245,158,11,.22); border-color: #f59e0b; box-shadow: 0 0 18px rgba(245,158,11,.45); }
+
+/* Purple — Connection Drop */
+.chaos-btn-purple {
+    border-color: rgba(168,85,247,.35);
+    color: #c084fc;
+    background: rgba(168,85,247,.08);
+}
+.chaos-btn-purple:hover  { background: rgba(168,85,247,.18); box-shadow: 0 4px 18px rgba(168,85,247,.3); }
+.chaos-btn-purple.active { background: rgba(168,85,247,.22); border-color: #a855f7; box-shadow: 0 0 18px rgba(168,85,247,.45); }
+
+/* Blue — Partial Outage */
+.chaos-btn-blue {
+    border-color: rgba(59,130,246,.35);
+    color: #60a5fa;
+    background: rgba(59,130,246,.08);
+}
+.chaos-btn-blue:hover  { background: rgba(59,130,246,.18); box-shadow: 0 4px 18px rgba(59,130,246,.3); }
+.chaos-btn-blue.active { background: rgba(59,130,246,.22); border-color: #3b82f6; box-shadow: 0 0 18px rgba(59,130,246,.45); }
+
+/* Clear / Restore Normal */
+.chaos-btn-clear {
+    border-color: rgba(16,232,150,.3);
+    color: #10e896;
+    background: rgba(16,232,150,.06);
+    margin-left: auto;
+}
+.chaos-btn-clear:hover { background: rgba(16,232,150,.15); box-shadow: 0 4px 18px rgba(16,232,150,.25); }
+
+/* Responsive collapse */
+@media (max-width: 900px) {
+    .chaos-panel {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.25rem;
+    }
+    .chaos-divider { width: 100%; height: 1px; margin: 0; }
+    .chaos-btn-clear { margin-left: 0; }
+}

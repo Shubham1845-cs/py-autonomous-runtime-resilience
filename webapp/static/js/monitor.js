@@ -1,108 +1,118 @@
-// Monitor Page JavaScript
+// ─── Monitor page — service selector + metrics detail ────────────────────
 
-let currentService = null;
-let currentWindow = 300;
+const selector   = document.getElementById('service-selector');
+const timeRange  = document.getElementById('time-range');
+const detailBox  = document.getElementById('service-detail');
 
-async function loadServiceSelector() {
+// ── Populate service dropdown ─────────────────────────────────────────────
+async function loadServices() {
     try {
-        const res = await fetch('/api/services');
+        const res      = await fetch('/api/services');
         const services = await res.json();
-        
-        const selector = document.getElementById('service-selector');
-        selector.innerHTML = '<option value="">Select a service...</option>' +
-            services.map(s => `<option value="${s.service}">${s.service}</option>`).join('');
-        
-        selector.addEventListener('change', (e) => {
-            currentService = e.target.value;
-            if (currentService) {
-                loadServiceDetail();
-            } else {
-                document.getElementById('service-detail').classList.add('hidden');
-            }
+
+        // Save current selection
+        const current = selector.value;
+
+        // Rebuild options
+        selector.innerHTML = '<option value="">— Select a Service —</option>';
+        services.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value       = s.service;
+            opt.textContent = s.service;
+            if (s.service === current) opt.selected = true;
+            selector.appendChild(opt);
         });
-    } catch (error) {
-        console.error('Failed to load services:', error);
+
+        // If only one service, auto-select it
+        if (services.length === 1 && !current) {
+            selector.value = services[0].service;
+            loadDetail();
+        }
+    } catch (e) {
+        console.error('Failed to load services:', e);
     }
 }
 
-async function loadServiceDetail() {
-    if (!currentService) return;
-    
+// ── Load detail for selected service ─────────────────────────────────────
+async function loadDetail() {
+    const svc    = selector.value;
+    const window = timeRange.value;
+    if (!svc) { detailBox.classList.add('hidden'); return; }
+
     try {
-        const res = await fetch(`/api/service/${currentService}`);
+        const res  = await fetch(`/api/service/${encodeURIComponent(svc)}?window=${window}`);
         const data = await res.json();
-        
-        const detailEl = document.getElementById('service-detail');
-        detailEl.classList.remove('hidden');
-        
-        // Update header
-        document.getElementById('detail-service-name').textContent = data.summary.service;
+
+        detailBox.classList.remove('hidden');
+
+        // ── Header ──
+        document.getElementById('detail-service-name').textContent = svc;
+
         const badge = document.getElementById('detail-status-badge');
-        badge.textContent = data.summary.status;
-        badge.className = `status-badge status-${data.summary.status}`;
-        
-        // Update metrics
-        document.getElementById('detail-failure-rate').textContent = data.summary.failure_rate + '%';
-        document.getElementById('detail-latency').textContent = data.summary.avg_latency + 's';
-        document.getElementById('detail-calls').textContent = data.summary.total_calls;
-        document.getElementById('detail-window').textContent = data.summary.window_seconds + 's';
-        
-        // Update recommendation
+        const st    = data.summary?.status ?? 'unknown';
+        badge.textContent = st;
+        badge.className   = `badge-pill badge-${st}`;
+
+        // ── Metric tiles ──
+        document.getElementById('detail-failure-rate').textContent =
+            (data.summary?.failure_rate ?? 0) + '%';
+        document.getElementById('detail-latency').textContent =
+            (data.summary?.avg_latency  ?? 0) + 's';
+        document.getElementById('detail-calls').textContent =
+            data.summary?.total_calls   ?? 0;
+        document.getElementById('detail-window').textContent =
+            (data.summary?.window_seconds ?? window) + 's';
+
+        // ── Recommendation ──
         const recBox = document.getElementById('recommendation-box');
         if (data.recommendation) {
-            recBox.style.display = 'block';
-            document.getElementById('rec-pattern').textContent = data.recommendation.pattern.replace('_', ' ').toUpperCase();
-            document.getElementById('rec-reason').textContent = data.recommendation.reason;
+            recBox.style.display = '';
+            document.getElementById('rec-pattern').textContent =
+                data.recommendation.pattern.replace('_', ' ').toUpperCase();
+            document.getElementById('rec-reason').textContent =
+                data.recommendation.reason;
         } else {
             recBox.style.display = 'none';
         }
-        
-        // Update metrics table
-        const tbody = document.getElementById('metrics-table-body');
-        if (data.metrics.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No metrics available</td></tr>';
-        } else {
-            tbody.innerHTML = data.metrics.slice(0, 20).map(m => `
-                <tr>
-                    <td>${formatTimestamp(m.timestamp)}</td>
-                    <td>${formatDuration(m.duration)}</td>
-                    <td><span class="status-badge ${m.status >= 400 || m.status === 0 ? 'status-critical' : 'status-healthy'}">${m.status || 'ERR'}</span></td>
-                    <td>${m.error || '-'}</td>
-                </tr>
-            `).join('');
+
+        // ── Calls table ──
+        const tbody  = document.getElementById('metrics-table-body');
+        const metrics = data.metrics ?? [];
+
+        if (!metrics.length) {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty-row">No calls recorded in this window</td></tr>`;
+            return;
         }
-        
-    } catch (error) {
-        console.error('Failed to load service detail:', error);
+
+        // newest first
+        tbody.innerHTML = [...metrics].reverse().slice(0, 50).map(m => {
+            const ts  = new Date(m.timestamp * 1000).toLocaleTimeString();
+            const dur = m.duration < 1
+                ? (m.duration * 1000).toFixed(0) + 'ms'
+                : m.duration.toFixed(3) + 's';
+            const ok  = m.status >= 200 && m.status < 400;
+            const statusCls = ok ? 'status-ok' : 'status-err';
+            return `
+            <tr>
+              <td>${ts}</td>
+              <td>${dur}</td>
+              <td><span class="${statusCls}">${m.status || '(conn fail)'}</span></td>
+              <td style="color:var(--red);font-size:.8rem">${m.error ?? '—'}</td>
+            </tr>`;
+        }).join('');
+
+    } catch (e) {
+        console.error('Failed to load detail:', e);
     }
 }
 
-function formatTimestamp(timestamp) {
-    const date = new Date(timestamp * 1000);
-    return date.toLocaleTimeString();
-}
+// ── Events ────────────────────────────────────────────────────────────────
+selector.addEventListener('change', loadDetail);
+timeRange.addEventListener('change', loadDetail);
 
-function formatDuration(seconds) {
-    if (seconds < 1) {
-        return (seconds * 1000).toFixed(0) + 'ms';
-    }
-    return seconds.toFixed(3) + 's';
-}
+// ── Poll ─────────────────────────────────────────────────────────────────
+loadServices();
+loadDetail();
 
-// Time range selector
-document.getElementById('time-range').addEventListener('change', (e) => {
-    currentWindow = parseInt(e.target.value);
-    if (currentService) {
-        loadServiceDetail();
-    }
-});
-
-// Initialize
-loadServiceSelector();
-
-// Auto-refresh every 3 seconds if a service is selected
-setInterval(() => {
-    if (currentService) {
-        loadServiceDetail();
-    }
-}, 3000);
+setInterval(loadServices, 5000);
+setInterval(loadDetail,   3000);

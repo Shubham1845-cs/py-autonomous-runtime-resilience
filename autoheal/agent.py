@@ -259,6 +259,24 @@ class AutoHealAgent:
         if decisions:
             logger.info("[Agent] Scan #%d: took %d action(s) across %d services.",
                         self._scan_count, len(decisions), len(services))
+        
+        # ── Loud terminal output for demo visibility ──
+        if self._scan_count % 5 == 0 or decisions:
+            healthy = sum(1 for s in services if not self.injector.has_pattern(s))
+            protected = sum(1 for s in services if self.injector.has_pattern(s))
+            print(f"\n{'='*60}")
+            print(f"  [AutoHeal] Scan #{self._scan_count}  |  {len(services)} service(s)")
+            print(f"  ✅ Healthy: {healthy}  |  🛡️  Protected: {protected}")
+            if decisions:
+                for d in decisions:
+                    if d['action'] == 'injected':
+                        print(f"  🚨 ACTION: Injected [{d['pattern'].upper()}] on '{d['service']}'")
+                        print(f"     Reason: {d.get('reason', 'N/A')}")
+                    elif d['action'] == 'removed':
+                        print(f"  ✅ ACTION: Removed [{d['pattern'].upper()}] from '{d['service']}' — RECOVERED!")
+            else:
+                print(f"  📊 No actions needed — system stable")
+            print(f"{'='*60}\n")
 
     def _evaluate_service(self, service_name: str) -> Optional[Dict]:
         """
@@ -278,8 +296,57 @@ class AutoHealAgent:
                 ))
                 logger.info("[Agent] ✅ Removed '%s' from '%s' — service recovered.",
                             pattern_type, service_name)
+                print(f"\n{'*'*60}")
+                print(f"  ✅ HEALED! Service '{service_name}' recovered.")
+                print(f"  Removed pattern: {pattern_type.upper()}")
+                print(f"{'*'*60}\n")
                 return {"action": "removed", "service": service_name, "pattern": pattern_type}
-            return None  # already protected, not yet healthy enough to remove
+            
+            # ── Check if pattern needs to be UPGRADED (e.g., RETRY → CIRCUIT BREAKER)
+            current_pattern = self.injector.get_pattern_type(service_name)
+            should_inject, recommendation = self.detector.should_inject_pattern(service_name)
+            
+            if should_inject and recommendation:
+                recommended_pattern = recommendation["pattern"]
+                # If recommended pattern is different, upgrade it
+                if recommended_pattern != current_pattern:
+                    logger.info("[Agent] ⬆️  Upgrading pattern on '%s': %s → %s",
+                                service_name, current_pattern, recommended_pattern)
+                    print(f"\n{'⬆'*60}")
+                    print(f"  ⬆️  ESCALATION on '{service_name}'")
+                    print(f"  Upgrading: {current_pattern.upper()} → {recommended_pattern.upper()}")
+                    print(f"  Reason: {recommendation['reason']}")
+                    print(f"{'⬆'*60}\n")
+                    
+                    # Remove old pattern and inject new one
+                    self.injector.remove(service_name)
+                    self.injector.inject(
+                        service_name = service_name,
+                        func         = lambda *a, **kw: None,
+                        pattern_type = recommended_pattern,
+                        config       = recommendation["config"],
+                    )
+                    
+                    with self._meta_lock:
+                        meta = self._service_meta.setdefault(service_name, {})
+                        meta["last_injection"]  = time.time()
+                        meta["injection_count"] = meta.get("injection_count", 0) + 1
+                    
+                    self._emit(AgentEvent(
+                        AgentEvent.PATTERN_INJECTED, service_name,
+                        {
+                            "pattern":      recommended_pattern,
+                            "reason":       f"Upgraded from {current_pattern}: {recommendation['reason']}",
+                            "health_state": recommendation["health_state"],
+                            "config":       recommendation["config"],
+                        }
+                    ))
+                    
+                    return {"action": "upgraded", "service": service_name,
+                            "from_pattern": current_pattern, "to_pattern": recommended_pattern,
+                            "reason": recommendation["reason"]}
+            
+            return None  # already protected with correct pattern
 
         # ── Check if pattern injection needed
         should_inject, recommendation = self.detector.should_inject_pattern(service_name)
@@ -330,6 +397,12 @@ class AutoHealAgent:
             "[Agent] 🛡️  Injected '%s' on '%s' | Reason: %s",
             pattern_type, service_name, reason
         )
+        print(f"\n{'!'*60}")
+        print(f"  🚨 FAILURE DETECTED on '{service_name}'")
+        print(f"  Health State: {health_state.upper()}")
+        print(f"  🛡️  INJECTING PATTERN: {pattern_type.upper()}")
+        print(f"  Reason: {reason}")
+        print(f"{'!'*60}\n")
         return {"action": "injected", "service": service_name,
                 "pattern": pattern_type, "reason": reason}
 
